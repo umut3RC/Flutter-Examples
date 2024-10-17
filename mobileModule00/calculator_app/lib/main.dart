@@ -29,16 +29,13 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _value = 0;
-  int _result = 0;
+  double _result = 0;
   String _showVal = '0';
+  bool _canPoint = true;
 
   void _numberController(int num) {
     setState(() {
       print('Button pressed: ' + num.toString());
-      //_value += num;
-      //_value *= 10;
-      // _value += num;
       if (_showVal == '0')
         _showVal = num.toString();
       else
@@ -50,77 +47,122 @@ class _MyHomePageState extends State<MyHomePage> {
       print('Button pressed: ' + sym);
       if (sym == 'AC')
       {
-        _value = 0;
         _showVal = '0';
         _result = 0;
+        _canPoint = true;
       }
       else if (sym == 'C')
       {
-        _value = 0;
-        _showVal = _result.toString();
+        if (_showVal[_showVal.length - 1] == '.')
+        {
+          _canPoint = true;
+        }
+        if (_showVal.length > 1)
+        {
+          _showVal = _showVal.substring(0, _showVal.length - 1);
+        }
+        else
+        {
+          _showVal = '0';
+        }
+      }
+      else if (sym == '00')
+      {
+        if ((_showVal != '0' && int.tryParse(_showVal[_showVal.length - 1]) != null)
+            || _showVal[_showVal.length - 1] == '.')
+        {
+          _showVal += '00';
+        }
       }
       else if (int.tryParse(_showVal[_showVal.length - 1]) != null)
       {
         if (sym == '=')
         {
           _result = GetTotalResult();
-          print ('res:' + _result.toString());
         }
         else
-          _showVal += sym;
+        {
+          if (sym == '.')
+          {
+            if (_canPoint)
+            {
+              _showVal += sym;
+            }
+            _canPoint = false;
+          }
+          else
+          {
+            _canPoint = true;
+            _showVal += sym;
+          }
+        }
       }
     });
   }
 
-  int GetTotalResult()
+  double GetTotalResult()
   {
-    int num1 = 0;
-    int num2 = 0;
+    double num1 = 0;
+    double num2 = 0;
     String lastSyms = '';
+    bool  inPoint = false;
+    double pointFactor = 10.0;
 
     if (int.tryParse(_showVal[_showVal.length - 1]) == null)
     {
       _showVal = _showVal.substring(0, _showVal.length - 1);
-      print('yep' + _showVal);
     }
     for (int i = 0; i < _showVal.length; i++)
     {
       if (int.tryParse(_showVal[i]) != null)// sayı direk ekle
-          {
-        num1 *= 10;
-        num1 += int.parse(_showVal[i]);
+      {
+        if (inPoint)
+        {
+          num1 = num1 + (int.parse(_showVal[i]) / pointFactor);
+          pointFactor *= 10.0;
+        }
+        else
+        {
+          num1 *= 10;
+          num1 += int.parse(_showVal[i]);
+        }
+      }
+      else if (_showVal[i] == '.')
+      {
+        inPoint = true;
       }
       else//sayı değil işlem
-          {
+      {
         if (lastSyms != '')
         {
           num2 = UseSymbol(lastSyms, num1, num2);
-          num1 = 0;
           lastSyms = _showVal[i];
         }
         else
         {
           lastSyms = _showVal[i];
           num2 = num1;
-          num1 = 0;
         }
+        num1 = 0;
+        inPoint = false;
+        pointFactor = 10.0;
       }
     }
     num2 = UseSymbol(lastSyms, num1, num2);
     return (num2);
   }
-  int UseSymbol(String sym, int num1, int num2)
+  double UseSymbol(String sym, double num1, double num2)
   {
     switch(sym)
     {
       case '+':
-        return num1 + num2;
+        return num2 + num1;
       case '-':
-        return num1 - num2;
+        return num2 - num1;
       case 'x':
-        return num1 * num2;
+        return num2 * num1;
       case '/':
-        return (num1 / num2).round();
+        return (num2 / num1);
       default:
         return 0;
     }
@@ -143,7 +185,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  _result.toString(),
+                  _result == 0.0 ? '0' : _result.toString(),
                   style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 ),
               ],

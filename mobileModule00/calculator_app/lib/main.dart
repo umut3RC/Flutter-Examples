@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:math_expressions/math_expressions.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,8 +13,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        scaffoldBackgroundColor: Colors.black,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.white),
+        scaffoldBackgroundColor: const Color.fromARGB(255, 9, 58, 59),
         useMaterial3: true,
       ),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
@@ -23,7 +23,9 @@ class MyApp extends StatelessWidget {
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
+
   final String title;
+
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
@@ -33,80 +35,127 @@ class _MyHomePageState extends State<MyHomePage> {
   String _showVal = '0';
   bool _canPoint = true;
 
+  var myBigInteger = BigInt.from(0);
+
   void _numberController(int num) {
     setState(() {
-      print('Button pressed: ' + num.toString());
-      if (_showVal == '0')
+      print('Button pressed: $num');
+      if (_showVal == '0') {
         _showVal = num.toString();
-      else
+      } else {
         _showVal += num.toString();
+      }
     });
   }
+
   void _symbolController(String sym) {
     setState(() {
-      print('Button pressed: ' + sym);
-      if (sym == 'AC')
-      {
+      print('Button pressed: $sym');
+      if (sym == 'AC') {
         _showVal = '0';
         _result = 0;
         _canPoint = true;
-      }
-      else if (sym == 'C')
-      {
-        if (_showVal[_showVal.length - 1] == '.')
-        {
+      } else if (sym == 'C') {
+        if (_showVal[_showVal.length - 1] == '.') {
           _canPoint = true;
         }
-        if (_showVal.length > 1)
-        {
+        if (_showVal.length > 1) {
           _showVal = _showVal.substring(0, _showVal.length - 1);
-        }
-        else
-        {
+        } else {
           _showVal = '0';
         }
-      }
-      else if (sym == '00')
-      {
-        if ((_showVal != '0' && int.tryParse(_showVal[_showVal.length - 1]) != null)
-            || _showVal[_showVal.length - 1] == '.')
-        {
+      } else if (sym == '00') {
+        if ((_showVal != '0' &&
+                int.tryParse(_showVal[_showVal.length - 1]) != null) ||
+            _showVal[_showVal.length - 1] == '.') {
           _showVal += '00';
         }
-      }
-      else if (int.tryParse(_showVal[_showVal.length - 1]) != null)
-      {
-        if (sym == '=')
-        {
+      } else if (int.tryParse(_showVal[_showVal.length - 1]) != null) {
+        if (sym == '=') {
           _result = GetTotalResult();
-        }
-        else
-        {
-          if (sym == '.')
-          {
-            if (_canPoint)
-            {
+        } else {
+          if (sym == '.') {
+            if (_canPoint) {
               _showVal += sym;
             }
             _canPoint = false;
-          }
-          else
-          {
+          } else {
             _canPoint = true;
             _showVal += sym;
           }
+        }
+      } else if (sym == '-') {
+        if (_showVal[_showVal.length - 1] != '.' &&
+            int.tryParse(_showVal[_showVal.length - 2]) != null) {
+          _showVal += sym;
         }
       }
     });
   }
 
+  double GetTotalResult() {
+    try {
+      String realString = _showVal.replaceAll('x', '*');
+      Parser parser = Parser();
+      Expression exp = parser.parse(realString);
+
+      ContextModel cm = ContextModel();
+      double result = exp.evaluate(EvaluationType.REAL, cm);
+      return result;
+    } catch (e) {
+      print("Error: $e");
+      return 0.0;
+    }
+  }
+
+  String GetResultString() {
+    String retRes = '';
+    if (_result == 0.0) //_result == 0.0 ? '0' : _result.toString(),
+    {
+      retRes = '0';
+    } else if (_result == double.infinity) {
+      retRes = 'Undefined';
+    } else {
+      // String formattedNumber = number.toStringAsFixed(20);
+      retRes = _result.toString();
+      // retRes = _result.toStringAsFixed(20);
+    }
+    return (retRes);
+  }
+
+  Widget GetMyButton(String showText, bool isSymbol) {
+    return (Expanded(
+      child: TextButton(
+        onPressed: () {
+          if (isSymbol) {
+            _symbolController(showText);
+          } else {
+            _numberController(int.parse(showText));
+          }
+        },
+        style: const ButtonStyle(
+          backgroundColor: WidgetStatePropertyAll<Color>(Colors.teal),
+        ),
+        child: Text(
+            showText,
+          style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 42),
+        ),
+      ),
+    ));
+  }
+
+  /*
   double GetTotalResult()
   {
     double num1 = 0;
     double num2 = 0;
+
     String lastSyms = '';
     bool  inPoint = false;
     double pointFactor = 10.0;
+    bool  willNegative = false;
 
     if (int.tryParse(_showVal[_showVal.length - 1]) == null)
     {
@@ -114,7 +163,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
     for (int i = 0; i < _showVal.length; i++)
     {
-      if (int.tryParse(_showVal[i]) != null)// sayı direk ekle
+      if (int.tryParse(_showVal[i]) != null)// sayı ekle
       {
         if (inPoint)
         {
@@ -126,6 +175,16 @@ class _MyHomePageState extends State<MyHomePage> {
           num1 *= 10;
           num1 += int.parse(_showVal[i]);
         }
+        if (willNegative)
+        {
+          num1 *= -1;
+          willNegative = false;
+        print('-->>>' + num1.toString());
+        }
+      }
+      else if (_showVal[i] == '-' && _showVal[i - 1] != '.' && int.tryParse(_showVal[i - 1]) == null)
+      {
+        willNegative = true;
       }
       else if (_showVal[i] == '.')
       {
@@ -151,6 +210,7 @@ class _MyHomePageState extends State<MyHomePage> {
     num2 = UseSymbol(lastSyms, num1, num2);
     return (num2);
   }
+
   double UseSymbol(String sym, double num1, double num2)
   {
     switch(sym)
@@ -167,139 +227,105 @@ class _MyHomePageState extends State<MyHomePage> {
         return 0;
     }
   }
+  */
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Calculator'),
+        backgroundColor: Colors.teal,
+      ),
       body: Center(
-        child:
-        Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
-                Text(
-                  _showVal,
-                  textAlign: TextAlign.right,
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    Flexible(
+                      child: Text(
+                        _showVal,
+                        softWrap: true,
+                        overflow: TextOverflow.visible,
+                        maxLines: null,
+                        style: const TextStyle(
+                            color: Colors.teal,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 42),
+                      ),
+                    ),
+                  ],
                 ),
-                Text(
-                  _result == 0.0 ? '0' : _result.toString(),
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    Flexible(
+                      child: Text(
+                        // _result == 0.0 ? '0' : _result.toString(),
+                        GetResultString(),
+                        style: const TextStyle(
+                            color: Colors.teal,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 42),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-            Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: <Widget>[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    mainAxisSize: MainAxisSize.max,
-                    children: <Widget>[
-                      TextButton(
-                        onPressed:() {_numberController(7);},
-                        child: const Text('7'),
-                      ),
-                      TextButton(
-                        onPressed:() {_numberController(8);},
-                        child: const Text('8'),
-                      ),
-                      TextButton(
-                        onPressed:() {_numberController(9);},
-                        child: const Text('9'),
-                      ),
-                      TextButton(
-                        onPressed:() {_symbolController('C');},
-                        child: const Text('C'),
-                      ),
-                      TextButton(
-                        onPressed:() {_symbolController('AC');},
-                        child: const Text('AC'),
-                      ),
-                    ],
-
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    mainAxisSize: MainAxisSize.max,
-                    children: <Widget>[
-                      TextButton(
-                        onPressed:() {_numberController(4);},
-                        child: const Text('4'),
-                      ),
-                      TextButton(
-                        onPressed:() {_numberController(5);},
-                        child: const Text('5'),
-                      ),
-                      TextButton(
-                        onPressed:() {_numberController(6);},
-                        child: const Text('6'),
-                      ),
-                      TextButton(
-                        onPressed:() {_symbolController('+');},
-                        child: const Text('+'),
-                      ),
-                      TextButton(
-                        onPressed:() {_symbolController('-');},
-                        child: const Text('-'),
-                      ),
-                    ],
-
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    mainAxisSize: MainAxisSize.max,
-                    children: <Widget>[
-                      TextButton(
-                        onPressed:() {_numberController(1);},
-                        child: const Text('1'),
-                      ),
-                      TextButton(
-                        onPressed:() {_numberController(2);},
-                        child: const Text('2'),
-                      ),
-                      TextButton(
-                        onPressed:() {_numberController(3);},
-                        child: const Text('3'),
-                      ),
-                      TextButton(
-                        onPressed:() {_symbolController('x');},
-                        child: const Text('x'),
-                      ),
-                      TextButton(
-                        onPressed:() {_symbolController('/');},
-                        child: const Text('/'),
-                      ),
-                    ],
-
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    mainAxisSize: MainAxisSize.max,
-                    children: <Widget>[
-                      TextButton(
-                        onPressed:() {_numberController(0);},
-                        child: const Text('0'),
-                      ),
-                      TextButton(
-                        onPressed:() {_symbolController('.');},
-                        child: const Text('.'),
-                      ),
-                      TextButton(
-                        onPressed:() {_symbolController('00');},
-                        child: const Text('00'),
-                      ),
-                      TextButton(
-                        onPressed:() {_symbolController('=');},
-                        child: const Text('='),
-                      ),
-                    ],
-
-                  ),
-                ]
+            Container(
+              color: Colors.teal,
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Row(
+                      mainAxisSize: MainAxisSize.max,
+                      children: <Widget>[
+                        GetMyButton('7', false),
+                        GetMyButton('8', false),
+                        GetMyButton('9', false),
+                        GetMyButton('C', true),
+                        GetMyButton('AC', true),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      mainAxisSize: MainAxisSize.max,
+                      children: <Widget>[
+                        GetMyButton('4', false),
+                        GetMyButton('5', false),
+                        GetMyButton('6', false),
+                        GetMyButton('+', true),
+                        GetMyButton('-', true),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      mainAxisSize: MainAxisSize.max,
+                      children: <Widget>[
+                        GetMyButton('1', false),
+                        GetMyButton('2', false),
+                        GetMyButton('3', false),
+                        GetMyButton('x', true),
+                        GetMyButton('/', true),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      mainAxisSize: MainAxisSize.max,
+                      children: <Widget>[
+                        GetMyButton('0', false),
+                        GetMyButton('.', true),
+                        GetMyButton('00', true),
+                        GetMyButton('=', true),
+                      ],
+                    ),
+                  ]),
             ),
-
           ],
         ),
       ),

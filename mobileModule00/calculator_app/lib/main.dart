@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        scaffoldBackgroundColor: const Color.fromARGB(255, 9, 58, 59),
+        //scaffoldBackgroundColor: const Color.fromARGB(255, 9, 58, 59),
         useMaterial3: true,
       ),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
@@ -39,7 +39,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _numberController(int num) {
     setState(() {
-      print('Button pressed: $num');
+      debugPrint('Button pressed: $num');
       if (_showVal == '0') {
         _showVal = num.toString();
       } else {
@@ -50,7 +50,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _symbolController(String sym) {
     setState(() {
-      print('Button pressed: $sym');
+      debugPrint('Button pressed: $sym');
       if (sym == 'AC') {
         _showVal = '0';
         _result = 0;
@@ -103,7 +103,7 @@ class _MyHomePageState extends State<MyHomePage> {
       double result = exp.evaluate(EvaluationType.REAL, cm);
       return result;
     } catch (e) {
-      print("Error: $e");
+      debugPrint("Error: $e");
       return 0.0;
     }
   }
@@ -113,7 +113,7 @@ class _MyHomePageState extends State<MyHomePage> {
     if (_result == 0.0) //_result == 0.0 ? '0' : _result.toString(),
     {
       retRes = '0';
-    } else if (_result == double.infinity) {
+    } else if (_result == double.infinity || _result.isNaN) {
       retRes = 'Undefined';
     } else {
       // String formattedNumber = number.toStringAsFixed(20);
@@ -123,7 +123,18 @@ class _MyHomePageState extends State<MyHomePage> {
     return (retRes);
   }
 
-  Widget GetMyButton(String showText, bool isSymbol) {
+  Widget GetMyButton(String showText, bool isSymbol, Color btnColor) {
+    if (showText == '') {
+      return (Expanded(
+        child: TextButton(
+          onPressed: () {},
+          style: ButtonStyle(
+            overlayColor: WidgetStateProperty.all(Colors.transparent),
+          ),
+          child: const Text(''),
+        ),
+      ));
+    }
     return (Expanded(
       child: TextButton(
         onPressed: () {
@@ -134,13 +145,15 @@ class _MyHomePageState extends State<MyHomePage> {
           }
         },
         style: const ButtonStyle(
-          backgroundColor: WidgetStatePropertyAll<Color>(Colors.teal),
+          backgroundColor: WidgetStatePropertyAll<Color>(Colors.blueGrey),
         ),
         child: Text(
-            showText,
-          style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 42),
+          showText,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 42,
+            color: btnColor,
+          ),
         ),
       ),
     ));
@@ -179,7 +192,7 @@ class _MyHomePageState extends State<MyHomePage> {
         {
           num1 *= -1;
           willNegative = false;
-        print('-->>>' + num1.toString());
+        debugPrint('-->>>' + num1.toString());
         }
       }
       else if (_showVal[i] == '-' && _showVal[i - 1] != '.' && int.tryParse(_showVal[i - 1]) == null)
@@ -231,100 +244,113 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Calculator'),
-        backgroundColor: Colors.teal,
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: <Widget>[
-                    Flexible(
-                      child: Text(
-                        _showVal,
-                        softWrap: true,
-                        overflow: TextOverflow.visible,
-                        maxLines: null,
-                        style: const TextStyle(
-                            color: Colors.teal,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 42),
-                      ),
+    return MaterialApp(
+      home: Scaffold(
+        backgroundColor: Colors.blueGrey[900],
+        resizeToAvoidBottomInset: false,
+        appBar: AppBar(
+          centerTitle: true,
+          title:
+              const Text('Calculator', style: TextStyle(color: Colors.white)),
+          backgroundColor: Colors.blueGrey,
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            _showVal,
+                            softWrap: true,
+                            overflow: TextOverflow.visible,
+                            maxLines: null,
+                            style: const TextStyle(
+                                color: Colors.blueGrey,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 42),
+                          ),
+                        ),
+                      ],
+                    ),
+                    //SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            GetResultString(),
+                            softWrap: true,
+                            overflow: TextOverflow.visible,
+                            maxLines: null,
+                            style: const TextStyle(
+                                color: Colors.blueGrey,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 42),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: <Widget>[
-                    Flexible(
-                      child: Text(
-                        // _result == 0.0 ? '0' : _result.toString(),
-                        GetResultString(),
-                        style: const TextStyle(
-                            color: Colors.teal,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 42),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+              ),
             ),
-            Container(
-              color: Colors.teal,
-              child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Row(
-                      mainAxisSize: MainAxisSize.max,
-                      children: <Widget>[
-                        GetMyButton('7', false),
-                        GetMyButton('8', false),
-                        GetMyButton('9', false),
-                        GetMyButton('C', true),
-                        GetMyButton('AC', true),
-                      ],
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      mainAxisSize: MainAxisSize.max,
-                      children: <Widget>[
-                        GetMyButton('4', false),
-                        GetMyButton('5', false),
-                        GetMyButton('6', false),
-                        GetMyButton('+', true),
-                        GetMyButton('-', true),
-                      ],
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      mainAxisSize: MainAxisSize.max,
-                      children: <Widget>[
-                        GetMyButton('1', false),
-                        GetMyButton('2', false),
-                        GetMyButton('3', false),
-                        GetMyButton('x', true),
-                        GetMyButton('/', true),
-                      ],
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      mainAxisSize: MainAxisSize.max,
-                      children: <Widget>[
-                        GetMyButton('0', false),
-                        GetMyButton('.', true),
-                        GetMyButton('00', true),
-                        GetMyButton('=', true),
-                      ],
-                    ),
-                  ]),
+            SingleChildScrollView(
+              child: Container(
+                color: Colors.blueGrey,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          GetMyButton('7', false, Colors.blueGrey[900]!),
+                          GetMyButton('8', false, Colors.blueGrey[900]!),
+                          GetMyButton('9', false, Colors.blueGrey[900]!),
+                          GetMyButton('C', true, Colors.red!),
+                          GetMyButton('AC', true, Colors.red!),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          GetMyButton('4', false, Colors.blueGrey[900]!),
+                          GetMyButton('5', false, Colors.blueGrey[900]!),
+                          GetMyButton('6', false, Colors.blueGrey[900]!),
+                          GetMyButton('+', true, Colors.white!),
+                          GetMyButton('-', true, Colors.white!),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          GetMyButton('1', false, Colors.blueGrey[900]!),
+                          GetMyButton('2', false, Colors.blueGrey[900]!),
+                          GetMyButton('3', false, Colors.blueGrey[900]!),
+                          GetMyButton('x', true, Colors.white),
+                          GetMyButton('/', true, Colors.white!),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          GetMyButton('0', false, Colors.blueGrey[900]!),
+                          GetMyButton('.', true, Colors.blueGrey[900]!),
+                          GetMyButton('00', true, Colors.blueGrey[900]!),
+                          GetMyButton('=', true, Colors.white!),
+                          GetMyButton('', false, Colors.white!),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ],
         ),

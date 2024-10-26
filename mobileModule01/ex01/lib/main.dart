@@ -8,7 +8,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Tab Example',
+      title: 'Weather App',
       home: TabScreen(),
     );
   }
@@ -19,15 +19,18 @@ class TabScreen extends StatefulWidget {
   _TabScreenState createState() => _TabScreenState();
 }
 
-class _TabScreenState extends State<TabScreen> with SingleTickerProviderStateMixin {
+class _TabScreenState extends State<TabScreen>
+    with SingleTickerProviderStateMixin {
   TabController? _tabController;
-  String  _locationData = ' ';
+  TextEditingController? _Fieldcontroller;
+  String _locationData = ' ';
   String query = '';
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _Fieldcontroller = TextEditingController();
   }
 
   @override
@@ -41,9 +44,17 @@ class _TabScreenState extends State<TabScreen> with SingleTickerProviderStateMix
       query = newQuery;
     });
   }
+
   void onEntered(String value) {
     setState(() {
       _locationData = value;
+    });
+  }
+
+  void ClearField() {
+    setState(() {
+      query = '';
+      _Fieldcontroller?.text = '';
     });
   }
 
@@ -51,24 +62,45 @@ class _TabScreenState extends State<TabScreen> with SingleTickerProviderStateMix
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(''),
+        title: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                onChanged: onQueryChanged,
+                controller: _Fieldcontroller,
+                decoration: InputDecoration(
+                  contentPadding: const EdgeInsets.all(10),
+                  hintText: 'Search Location',
+                  prefixIcon: const Icon(Icons.search),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () {
+                      ClearField();
+                    },
+                  ),
+                ),
+                onSubmitted: onEntered,
+              ),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                  color: Colors.blue[800],
+                  borderRadius:
+                      const BorderRadius.only(topRight: Radius.circular(10))),
+              child: IconButton(
+                  icon: const Icon(
+                    Icons.arrow_outward_sharp,
+                    color: Colors.white,
+                  ),
+                  onPressed: () {
+                    onEntered(query);
+                  }),
+            )
+          ],
+        ),
       ),
       body: Column(
         children: [
-          Column(
-            children: [
-      Container(
-      child: TextField(
-        onChanged: onQueryChanged,
-        decoration: InputDecoration(
-          labelText: 'Search',
-          prefixIcon: Icon(Icons.search),
-        ),
-        onSubmitted: onEntered,
-      ),
-    ),
-            ],
-          ),
           Expanded(
             child: TabBarView(
               controller: _tabController,
@@ -119,35 +151,3 @@ class _TabScreenState extends State<TabScreen> with SingleTickerProviderStateMix
     );
   }
 }
-/*
-class SearchBar extends StatefulWidget {
-  @override
-  _SearchBarState createState() => _SearchBarState();
-}
-
-class _SearchBarState extends State<SearchBar> {
-  String query = '';
-
-  void onQueryChanged(String newQuery) {
-    setState(() {
-      query = newQuery;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(16),
-      child: TextField(
-        onChanged: onQueryChanged,
-        decoration: InputDecoration(
-          labelText: 'Search',
-          prefixIcon: Icon(Icons.search),
-        ),
-        onSubmitted: (value){
-          print('');
-        },
-      ),
-    );
-  }
-}*/

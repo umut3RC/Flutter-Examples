@@ -7,12 +7,10 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'm00-e00',
-      // home: MyHomePage(title: 'Flutter Demo Home Page'),
+      title: 'ex00',
       home: Scaffold(
       body: Center(
         child: Column(
@@ -23,14 +21,14 @@ class MyApp extends StatelessWidget {
             ),
             TextButton(
               onPressed: () {
-                print('Button pressed');
+                debugPrint('Button pressed');
               },
               child: const Text('Click me'),
             ),
           ],
         ),
       ),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ),
     );
   }
 }

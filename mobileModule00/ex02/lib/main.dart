@@ -12,7 +12,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
@@ -22,156 +21,173 @@ class MyApp extends StatelessWidget {
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
+
   final String title;
+
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _value = 0;
-  int _result = 0;
 
   void _numberController(int num) {
     setState(() {
-      print('Button pressed: ' + num.toString());
-      //_value += num;
+      debugPrint('Button pressed: $num');
     });
   }
+
   void _symbolController(String sym) {
     setState(() {
-      print('Button pressed: ' + sym);
-      //_counter++;
+      debugPrint('Button pressed: $sym');
     });
+  }
+
+  Widget GetMyButton(String showText, bool isSymbol, Color btnColor) {
+    if (showText == '') {
+      return (Expanded(
+        child: TextButton(
+          onPressed: () {},
+          style: ButtonStyle(
+            overlayColor: WidgetStateProperty.all(Colors.transparent),
+          ),
+          child: const Text(''),
+        ),
+      ));
+    }
+    return (Expanded(
+      child: TextButton(
+        onPressed: () {
+          if (isSymbol) {
+            _symbolController(showText);
+          } else {
+            _numberController(int.parse(showText));
+          }
+        },
+        style: const ButtonStyle(
+          backgroundColor: WidgetStatePropertyAll<Color>(Colors.blueGrey),
+        ),
+        child: Text(
+          showText,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 42,
+            color: btnColor,
+          ),
+        ),
+      ),
+    ));
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child:
-          Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: <Widget>[
-            Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: <Widget>[
-              Text(
-                  _value.toString(),
-                  textAlign: TextAlign.right,
+    return MaterialApp(
+      home: Scaffold(
+        backgroundColor: Colors.blueGrey[900],
+        resizeToAvoidBottomInset: false,
+        appBar: AppBar(
+          centerTitle: true,
+          title:
+              const Text('Calculator', style: TextStyle(color: Colors.white)),
+          backgroundColor: Colors.blueGrey,
+        ),
+        body: Column(
+          children: [
+           const  Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    const Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            '0',
+                            softWrap: true,
+                            overflow: TextOverflow.visible,
+                            maxLines: null,
+                            style: const TextStyle(
+                                color: Colors.blueGrey,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 42),
+                          ),
+                        ),
+                      ],
+                    ),
+                    //SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            '0',
+                            softWrap: true,
+                            overflow: TextOverflow.visible,
+                            maxLines: null,
+                            style: TextStyle(
+                                color: Colors.blueGrey,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 42),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-              Text(_result.toString()),
-              ],
             ),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  mainAxisSize: MainAxisSize.max,
-                  children: <Widget>[
-                    TextButton(
-                      onPressed:() {_numberController(7);},
-                      child: const Text('7'),
-                    ),
-                    TextButton(
-                      onPressed:() {_numberController(8);},
-                      child: const Text('8'),
-                    ),
-                    TextButton(
-                      onPressed:() {_numberController(9);},
-                      child: const Text('9'),
-                    ),
-                    TextButton(
-                      onPressed:() {_symbolController('C');},
-                      child: const Text('C'),
-                    ),
-                    TextButton(
-                      onPressed:() {_symbolController('AC');},
-                      child: const Text('AC'),
-                    ),
-                  ],
-
+            SingleChildScrollView(
+              child: Container(
+                color: Colors.blueGrey,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          GetMyButton('7', false, Colors.blueGrey[900]!),
+                          GetMyButton('8', false, Colors.blueGrey[900]!),
+                          GetMyButton('9', false, Colors.blueGrey[900]!),
+                          GetMyButton('C', true, Colors.red),
+                          GetMyButton('AC', true, Colors.red),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          GetMyButton('4', false, Colors.blueGrey[900]!),
+                          GetMyButton('5', false, Colors.blueGrey[900]!),
+                          GetMyButton('6', false, Colors.blueGrey[900]!),
+                          GetMyButton('+', true, Colors.white),
+                          GetMyButton('-', true, Colors.white),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          GetMyButton('1', false, Colors.blueGrey[900]!),
+                          GetMyButton('2', false, Colors.blueGrey[900]!),
+                          GetMyButton('3', false, Colors.blueGrey[900]!),
+                          GetMyButton('x', true, Colors.white),
+                          GetMyButton('/', true, Colors.white),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          GetMyButton('0', false, Colors.blueGrey[900]!),
+                          GetMyButton('.', true, Colors.blueGrey[900]!),
+                          GetMyButton('00', true, Colors.blueGrey[900]!),
+                          GetMyButton('=', true, Colors.white),
+                          GetMyButton('', false, Colors.white),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  mainAxisSize: MainAxisSize.max,
-                  children: <Widget>[
-                    TextButton(
-                      onPressed:() {_numberController(4);},
-                      child: const Text('4'),
-                    ),
-                    TextButton(
-                      onPressed:() {_numberController(5);},
-                      child: const Text('5'),
-                    ),
-                    TextButton(
-                      onPressed:() {_numberController(6);},
-                      child: const Text('6'),
-                    ),
-                    TextButton(
-                      onPressed:() {_symbolController('+');},
-                      child: const Text('+'),
-                    ),
-                    TextButton(
-                      onPressed:() {_symbolController('-');},
-                      child: const Text('-'),
-                    ),
-                  ],
-
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  mainAxisSize: MainAxisSize.max,
-                  children: <Widget>[
-                    TextButton(
-                      onPressed:() {_numberController(1);},
-                      child: const Text('1'),
-                    ),
-                    TextButton(
-                      onPressed:() {_numberController(2);},
-                      child: const Text('2'),
-                    ),
-                    TextButton(
-                      onPressed:() {_numberController(3);},
-                      child: const Text('3'),
-                    ),
-                    TextButton(
-                      onPressed:() {_symbolController('x');},
-                      child: const Text('x'),
-                    ),
-                    TextButton(
-                      onPressed:() {_symbolController('/');},
-                      child: const Text('/'),
-                    ),
-                  ],
-
-                ),
-                Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                mainAxisSize: MainAxisSize.max,
-                children: <Widget>[
-                  TextButton(
-                    onPressed:() {_numberController(0);},
-                    child: const Text('0'),
-                  ),
-                  TextButton(
-                    onPressed:() {_symbolController('.');},
-                    child: const Text('.'),
-                  ),
-                  TextButton(
-                    onPressed:() {_symbolController('00');},
-                    child: const Text('00'),
-                  ),
-                  TextButton(
-                    onPressed:() {_symbolController('=');},
-                    child: const Text('='),
-                  ),
-                ],
-
               ),
-              ]
             ),
-
           ],
         ),
       ),

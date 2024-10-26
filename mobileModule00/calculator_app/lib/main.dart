@@ -13,7 +13,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        //scaffoldBackgroundColor: const Color.fromARGB(255, 9, 58, 59),
         useMaterial3: true,
       ),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
@@ -34,8 +33,6 @@ class _MyHomePageState extends State<MyHomePage> {
   double _result = 0;
   String _showVal = '0';
   bool _canPoint = true;
-
-  var myBigInteger = BigInt.from(0);
 
   void _numberController(int num) {
     setState(() {
@@ -277,7 +274,6 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                       ],
                     ),
-                    //SizedBox(height: 10),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
@@ -313,8 +309,8 @@ class _MyHomePageState extends State<MyHomePage> {
                           GetMyButton('7', false, Colors.blueGrey[900]!),
                           GetMyButton('8', false, Colors.blueGrey[900]!),
                           GetMyButton('9', false, Colors.blueGrey[900]!),
-                          GetMyButton('C', true, Colors.red!),
-                          GetMyButton('AC', true, Colors.red!),
+                          GetMyButton('C', true, Colors.red),
+                          GetMyButton('AC', true, Colors.red),
                         ],
                       ),
                       Row(
@@ -323,8 +319,8 @@ class _MyHomePageState extends State<MyHomePage> {
                           GetMyButton('4', false, Colors.blueGrey[900]!),
                           GetMyButton('5', false, Colors.blueGrey[900]!),
                           GetMyButton('6', false, Colors.blueGrey[900]!),
-                          GetMyButton('+', true, Colors.white!),
-                          GetMyButton('-', true, Colors.white!),
+                          GetMyButton('+', true, Colors.white),
+                          GetMyButton('-', true, Colors.white),
                         ],
                       ),
                       Row(
@@ -334,8 +330,8 @@ class _MyHomePageState extends State<MyHomePage> {
                           GetMyButton('2', false, Colors.blueGrey[900]!),
                           GetMyButton('3', false, Colors.blueGrey[900]!),
                           GetMyButton('x', true, Colors.white),
-                          GetMyButton('/', true, Colors.white!),
-                        ],
+                          GetMyButton('/', true, Colors.white),
+                      ],
                       ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -343,9 +339,9 @@ class _MyHomePageState extends State<MyHomePage> {
                           GetMyButton('0', false, Colors.blueGrey[900]!),
                           GetMyButton('.', true, Colors.blueGrey[900]!),
                           GetMyButton('00', true, Colors.blueGrey[900]!),
-                          GetMyButton('=', true, Colors.white!),
-                          GetMyButton('', false, Colors.white!),
-                        ],
+                          GetMyButton('=', true, Colors.white),
+                         GetMyButton('', false, Colors.white),
+                      ],
                       ),
                     ],
                   ),

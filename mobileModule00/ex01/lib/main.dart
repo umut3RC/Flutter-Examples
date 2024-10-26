@@ -32,7 +32,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _incrementCounter() {
     setState(() {
-      print('Button pressed');
+      debugPrint('Button pressed');
       _counter++;
     });
   }

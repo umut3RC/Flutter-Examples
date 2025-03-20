@@ -38,19 +38,27 @@ class _WeatherScreenState extends State<WeatherScreen>
 
   TabController? _tabController;
   String _selectedLocation = '';
+  String _selectedCity = '';
+  String _selectedRegion = '';
+  String _selectedCountry = '';
   String query = '';
   bool _hasInternet = true;
   String _errorMessage = "";
 
   Future<void> _searchCity(String query) async {
     final url =
-        'https://nominatim.openstreetmap.org/search?format=json&q=$query';
+        'https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=$query';
     final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       setState(() {
         _searchResults = data;
+        // final address = _searchResults[0]['address'];
+        // final city = address['city'] ?? address['town'] ?? address['village'] ?? 'Unknown City';
+        // final state = address['state'] ?? 'Unknown State';
+        // final country = address['country'] ?? 'Unknown Country';
+
         _errorMessage = "";
       });
     } else {
@@ -60,7 +68,18 @@ class _WeatherScreenState extends State<WeatherScreen>
     }
   }
 
-  void _setDatas(double lat, double lon) {
+  void _setDatas(final res) {
+    final lat = double.parse(res['lat']);
+    final lon = double.parse(res['lon']);
+
+    final address = res['address'];
+    _selectedCity = address['city'] ??
+        address['town'] ??
+        address['village'] ??
+        'Unknown City';
+    _selectedRegion = address['region'] ?? 'Unknown Region';
+    _selectedCountry = address['country'] ?? 'Unknown Country';
+
     _getCurrentlyData(lat, lon);
     _getTodayData(lat, lon);
     _getWeeklyData(lat, lon);
@@ -85,9 +104,9 @@ class _WeatherScreenState extends State<WeatherScreen>
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       setState(() {
-        _currentlyData =
-            "Temperature: ${data['current_weather']['temperature']}°C\n"
-            "Wind Speed: ${data['current_weather']['windspeed']} km/h";
+        _currentlyData = "${data['current_weather']['temperature']}°C\n"
+            "${data['current_weather']['windspeed']} km/h\n"
+            "${data['current_weather']['weathercode']}";
       });
     } else {
       setState(() {
@@ -137,53 +156,6 @@ class _WeatherScreenState extends State<WeatherScreen>
       final data = json.decode(response.body);
       final daily = data['daily'];
 
-      // Hava durumu kodlarını metne çevirmek için yardımcı fonksiyon
-      String getWeatherCondition(int code) {
-        switch (code) {
-          case 0:
-            return "Açık";
-          case 1:
-          case 2:
-          case 3:
-            return "Parçalı Bulutlu";
-          case 45:
-          case 48:
-            return "Sisli";
-          case 51:
-          case 53:
-          case 55:
-            return "Hafif Yağmurlu";
-          case 56:
-          case 57:
-          case 66:
-          case 67:
-            return "Donan Yağmur";
-          case 61:
-          case 63:
-          case 65:
-            return "Yağmurlu";
-          case 71:
-          case 73:
-          case 75:
-            return "Karlı";
-          case 77:
-            return "Kar Taneleri";
-          case 80:
-          case 81:
-          case 82:
-            return "Sağanak Yağışlı";
-          case 85:
-          case 86:
-            return "Kar Fırtınası";
-          case 95:
-          case 96:
-          case 99:
-            return "Gök Gürültülü Fırtına";
-          default:
-            return "Bilinmeyen";
-        }
-      }
-
       // 7 günlük veriyi formatla
       String formattedData = "";
       for (int i = 0; i < daily['time'].length; i++) {
@@ -200,6 +172,129 @@ class _WeatherScreenState extends State<WeatherScreen>
       setState(() {
         _weeklyData = "Weather data could not be fetched.";
       });
+    }
+  }
+
+  String getWeatherCondition(int code) {
+    switch (code) {
+      case 0:
+        return "Açık";
+      case 1:
+      case 2:
+      case 3:
+        return "Parçalı Bulutlu";
+      case 45:
+      case 48:
+        return "Sisli";
+      case 51:
+      case 53:
+      case 55:
+        return "Hafif Yağmurlu";
+      case 56:
+      case 57:
+      case 66:
+      case 67:
+        return "Donan Yağmur";
+      case 61:
+      case 63:
+      case 65:
+        return "Yağmurlu";
+      case 71:
+      case 73:
+      case 75:
+        return "Karlı";
+      case 77:
+        return "Kar Taneleri";
+      case 80:
+      case 81:
+      case 82:
+        return "Sağanak Yağışlı";
+      case 85:
+      case 86:
+        return "Kar Fırtınası";
+      case 95:
+      case 96:
+      case 99:
+        return "Gök Gürültülü Fırtına";
+      default:
+        return "Bilinmeyen";
+    }
+  }
+
+  Widget getWeatherIcon(String code) {
+    switch (code) {
+      case "Açık":
+        return const Icon(
+          Icons.sunny,
+          color: Colors.white,
+          weight: 50,
+        );
+      case "Parçalı Bulutlu":
+        return const Icon(
+          Icons.cloud,
+          color: Colors.white,
+          weight: 50,
+        );
+      case "Sisli":
+        return const Icon(
+          Icons.foggy,
+          color: Colors.white,
+          weight: 50,
+        );
+      case "Hafif Yağmurlu":
+        return const Icon(
+          Icons.cloudy_snowing,
+          color: Colors.white,
+          weight: 50,
+        );
+      case "Donan Yağmur":
+        return const Icon(
+          Icons.cloudy_snowing,
+          color: Colors.white,
+          weight: 50,
+        );
+      case "Yağmurlu":
+        return const Icon(
+          Icons.water_drop,
+          color: Colors.white,
+          weight: 50,
+        );
+      case "Karlı":
+        return const Icon(
+          Icons.ac_unit,
+          color: Colors.white,
+          weight: 50,
+        );
+      case "Kar Taneleri":
+        return const Icon(
+          Icons.ac_unit,
+          color: Colors.white,
+          weight: 50,
+        );
+      case "Sağanak Yağışlı":
+        return const Icon(
+          Icons.thunderstorm,
+          color: Colors.white,
+          weight: 50,
+        );
+      case "Kar Fırtınası":
+        return const Icon(
+          Icons.ac_unit,
+          color: Colors.white,
+          weight: 50,
+        );
+      case "Gök Gürültülü Fırtına":
+        return const Icon(
+          Icons.thunderstorm,
+          color: Colors.white,
+          weight: 50,
+        );
+      default:
+        return const Icon(
+          Icons.help,
+          color: Colors.white,
+          weight: 50,
+        );
     }
   }
 
@@ -255,36 +350,91 @@ class _WeatherScreenState extends State<WeatherScreen>
         ),
       ));
     } else {
+      List<String> splited = _currentlyData?.split('\n') ?? [];
+      String tempText = "";
+      String? windSpeedText = "";
+      int weatherCode = 0;
+      if (splited.length > 2) {
+        tempText = splited[0];
+        windSpeedText = splited[1];
+        if (splited[2].trim().isNotEmpty) {
+          weatherCode = int.tryParse(splited[2].trim()) ?? 0;
+        }
+      }
+
       return (Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            if (_currentlyData != null)
-              Column(
-                children: [
-                  Text(
-                    _selectedLocation,
-                    style: const TextStyle(fontSize: 24),
+          child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            width: double.infinity, // Ekranı kaplasın
+            padding: const EdgeInsets.all(16),
+            margin: const EdgeInsets.all(25),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.5), // Şeffaf siyah arkaplan
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              if (_currentlyData != null)
+                Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    Text(
+                      _selectedCity,
+                      style: const TextStyle(fontSize: 24, color: Colors.white),
+                      textAlign: TextAlign.center,
+                    ),
+                    Text(
+                      _selectedRegion,
+                      style: const TextStyle(fontSize: 20, color: Colors.white),
+                      textAlign: TextAlign.center,
+                    ),
+                    Text(
+                      _selectedCountry,
+                      style: const TextStyle(fontSize: 20, color: Colors.white),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 75),
+                    Text(
+                      tempText!,
+                      style: const TextStyle(fontSize: 40, color: Colors.white),
+                      textAlign: TextAlign.center,
+                    ),
+                    Text(
+                      getWeatherCondition(weatherCode),
+                      style: const TextStyle(fontSize: 25, color: Colors.white),
+                      textAlign: TextAlign.center,
+                    ),
+                    getWeatherIcon(getWeatherCondition(weatherCode)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.air, color: Colors.white),
+                        Text(
+                          windSpeedText!,
+                          style: const TextStyle(
+                              fontSize: 24, color: Colors.white),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    )
+                  ],
+                )
+              else
+                const Center(
+                  child: Text(
+                    "Location",
+                    style: TextStyle(fontSize: 15, color: Colors.white),
                     textAlign: TextAlign.center,
                   ),
-                  Text(
-                    _currentlyData!,
-                    style: const TextStyle(fontSize: 24),
-                    textAlign: TextAlign.center,
-                  )
-                ],
-              )
-            else
-              const Center(
-                child: Text(
-                  "Location",
-                  style: TextStyle(fontSize: 24),
-                  textAlign: TextAlign.center,
-                ),
-              )
-          ],
-        ),
-      ));
+                )
+            ],
+          ),
+        ],
+      )));
     }
   }
 
@@ -324,7 +474,7 @@ class _WeatherScreenState extends State<WeatherScreen>
                 const Center(
                   child: Text(
                     "Location",
-                    style: TextStyle(fontSize: 24),
+                    style: TextStyle(fontSize: 24, color: Colors.white),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -371,7 +521,7 @@ class _WeatherScreenState extends State<WeatherScreen>
                 const Center(
                   child: Text(
                     "Location",
-                    style: TextStyle(fontSize: 24),
+                    style: TextStyle(fontSize: 24, color: Colors.white),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -425,9 +575,7 @@ class _WeatherScreenState extends State<WeatherScreen>
                 onPressed: () {
                   if (_searchResults.isNotEmpty) {
                     final result = _searchResults[0];
-                    final lat = double.parse(result['lat']);
-                    final lon = double.parse(result['lon']);
-                    _setDatas(lat, lon);
+                    _setDatas(result);
                     _searchController.text = "";
                     _searchResults.clear();
                     _selectedLocation = result['display_name'];
@@ -451,7 +599,7 @@ class _WeatherScreenState extends State<WeatherScreen>
           // Arkaplan resmi (tüm ekranı kaplayacak şekilde)
           Positioned.fill(
             child: Image.asset(
-              "assets/images/bg_2.png",
+              "assets/images/bg-4.png",
               fit: BoxFit.cover, // Resmi ekrana sığdır
             ),
           ),
@@ -472,6 +620,7 @@ class _WeatherScreenState extends State<WeatherScreen>
                                     children: [
                                       const Icon(
                                         Icons.location_city,
+                                        color: Colors.blue,
                                       ),
                                       Text(
                                         result['display_name'].substring(
@@ -480,7 +629,8 @@ class _WeatherScreenState extends State<WeatherScreen>
                                                 .indexOf(',')),
                                         style: const TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            fontSize: 20),
+                                            fontSize: 20,
+                                            color: Colors.white),
                                       ),
                                       Text(
                                         result['display_name'].substring(
@@ -488,7 +638,8 @@ class _WeatherScreenState extends State<WeatherScreen>
                                                 .indexOf(',')),
                                         style: const TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            fontSize: 15),
+                                            fontSize: 15,
+                                            color: Colors.white),
                                       ),
                                       const Divider(
                                         thickness: 2,
@@ -500,7 +651,8 @@ class _WeatherScreenState extends State<WeatherScreen>
                                       Text(
                                         result['display_name'],
                                         style: const TextStyle(
-                                            fontWeight: FontWeight.bold),
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white),
                                       ),
                                       const Divider(
                                         thickness: 2,
@@ -508,9 +660,7 @@ class _WeatherScreenState extends State<WeatherScreen>
                                     ],
                                   ),
                             onTap: () {
-                              final lat = double.parse(result['lat']);
-                              final lon = double.parse(result['lon']);
-                              _setDatas(lat, lon);
+                              _setDatas(result);
                               _searchController.text = "";
                               _searchResults.clear();
                               _selectedLocation = result['display_name'];
@@ -535,7 +685,7 @@ class _WeatherScreenState extends State<WeatherScreen>
       ),
       bottomNavigationBar: BottomAppBar(
         // color: Colors.transparent,
-        color: const Color.fromARGB(200, 255, 255, 255),
+        color: const Color.fromARGB(150, 255, 255, 255),
         elevation: 0,
         child: TabBar(
           controller: _tabController,

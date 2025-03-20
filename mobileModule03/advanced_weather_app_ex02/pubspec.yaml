@@ -1,4 +1,4 @@
-name: advanced_weather_app_ex01
+name: advanced_weather_app_ex02
 description: "A new Flutter project."
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -7,7 +7,6 @@ version: 1.0.0+1
 
 environment:
   sdk: ^3.5.3
-
 
 dependencies:
   flutter:
@@ -27,6 +26,6 @@ dev_dependencies:
 
 flutter:
   assets:
-    - assets/images/bg_2.png
+    - assets/images/bg-4.png
 
   uses-material-design: true

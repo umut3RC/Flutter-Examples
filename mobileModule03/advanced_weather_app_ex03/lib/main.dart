@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 void main() {
   runApp(const WeatherApp());
@@ -36,11 +38,17 @@ class _WeatherScreenState extends State<WeatherScreen>
   String? _todayData;
   String? _weeklyData;
 
+  double _todayMinTemp = 0.0;
+  double _todayMaxTemp = 0.0;
+  List<double> _allTodayTemps = [];
+
   TabController? _tabController;
+
   String _selectedLocation = '';
   String _selectedCity = '';
   String _selectedRegion = '';
   String _selectedCountry = '';
+
   String query = '';
   bool _hasInternet = true;
   String _errorMessage = "";
@@ -131,14 +139,37 @@ class _WeatherScreenState extends State<WeatherScreen>
 
       String weatherInfo = "";
 
+      double minTempVal = 10000.0;
+      double maxTempVal = -10000.0;
+      double tmp = 0.0;
+
+      _allTodayTemps.clear();
       for (int i = 0; i < hourlyTimes.length; i++) {
         weatherInfo += "${hourlyTimes[i].split("T")[1]}"
             "        ${temperatures[i]}°C"
-            "        ${windSpeeds[i]} km/h\n";
+            "        ${windSpeeds[i]} km/h || ";
+
+        tmp = double.parse(temperatures[i].toString());
+        _allTodayTemps.add(tmp);
+
+        if (tmp > maxTempVal) {
+          maxTempVal = tmp;
+        } else if (tmp < minTempVal) {
+          minTempVal = tmp;
+        }
+
       }
+
+
+
+      print("Max:$maxTempVal *** Min$minTempVal *** Count:${_allTodayTemps.length}" );
+
+
 
       setState(() {
         _todayData = weatherInfo;
+        _todayMinTemp = minTempVal;
+        _todayMaxTemp = maxTempVal;
       });
     } else {
       setState(() {
@@ -160,7 +191,7 @@ class _WeatherScreenState extends State<WeatherScreen>
       String formattedData = "";
       for (int i = 0; i < daily['time'].length; i++) {
         formattedData +=
-        "${daily['time'][i]}: Min ${daily['temperature_2m_min'][i]}°C, "
+            "${daily['time'][i]}: Min ${daily['temperature_2m_min'][i]}°C, "
             "Max ${daily['temperature_2m_max'][i]}°C, "
             "${getWeatherCondition(daily['weathercode'][i])}\n";
       }
@@ -361,83 +392,83 @@ class _WeatherScreenState extends State<WeatherScreen>
           weatherCode = int.tryParse(splited[2].trim()) ?? 0;
         }
       }
-
       return (Center(
           child: Stack(
-            alignment: Alignment.center,
+        alignment: Alignment.center,
+        children: [
+          Container(
+            width: double.infinity, // Ekranı kaplasın
+            padding: const EdgeInsets.all(16),
+            margin: const EdgeInsets.all(25),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Container(
-                width: double.infinity, // Ekranı kaplasın
-                padding: const EdgeInsets.all(16),
-                margin: const EdgeInsets.all(25),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5), // Şeffaf siyah arkaplan
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  if (_currentlyData != null)
-                    Column(
+              if (_currentlyData != null)
+                Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    Text(
+                      _selectedCity,
+                      style: const TextStyle(fontSize: 24, color: Colors.white),
+                      textAlign: TextAlign.center,
+                    ),
+                    Text(
+                      _selectedRegion,
+                      style: const TextStyle(fontSize: 20, color: Colors.white),
+                      textAlign: TextAlign.center,
+                    ),
+                    Text(
+                      _selectedCountry,
+                      style: const TextStyle(fontSize: 20, color: Colors.white),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 75),
+                    Text(
+                      tempText,
+                      style: const TextStyle(fontSize: 40, color: Colors.white),
+                      textAlign: TextAlign.center,
+                    ),
+                    Text(
+                      getWeatherCondition(weatherCode),
+                      style: const TextStyle(fontSize: 25, color: Colors.white),
+                      textAlign: TextAlign.center,
+                    ),
+                    getWeatherIcon(getWeatherCondition(weatherCode)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const SizedBox(height: 20),
+                        Icon(Icons.air, color: Colors.white),
                         Text(
-                          _selectedCity,
-                          style: const TextStyle(fontSize: 24, color: Colors.white),
+                          windSpeedText,
+                          style: const TextStyle(
+                              fontSize: 24, color: Colors.white),
                           textAlign: TextAlign.center,
                         ),
-                        Text(
-                          _selectedRegion,
-                          style: const TextStyle(fontSize: 20, color: Colors.white),
-                          textAlign: TextAlign.center,
-                        ),
-                        Text(
-                          _selectedCountry,
-                          style: const TextStyle(fontSize: 20, color: Colors.white),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 75),
-                        Text(
-                          tempText!,
-                          style: const TextStyle(fontSize: 40, color: Colors.white),
-                          textAlign: TextAlign.center,
-                        ),
-                        Text(
-                          getWeatherCondition(weatherCode),
-                          style: const TextStyle(fontSize: 25, color: Colors.white),
-                          textAlign: TextAlign.center,
-                        ),
-                        getWeatherIcon(getWeatherCondition(weatherCode)),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.air, color: Colors.white),
-                            Text(
-                              windSpeedText!,
-                              style: const TextStyle(
-                                  fontSize: 24, color: Colors.white),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        )
                       ],
                     )
-                  else
-                    const Center(
-                      child: Text(
-                        "Location",
-                        style: TextStyle(fontSize: 15, color: Colors.white),
-                        textAlign: TextAlign.center,
-                      ),
-                    )
-                ],
-              ),
+                  ],
+                )
+              else
+                const Center(
+                  child: Text(
+                    "Location",
+                    style: TextStyle(fontSize: 15, color: Colors.white),
+                    textAlign: TextAlign.center,
+                  ),
+                )
             ],
-          )));
+          ),
+        ],
+      )));
     }
   }
 
+//------------------------------------------------------------TTTOOODDDAAAYYY
   Widget todayTabObject() {
     if (getErrorMessages().isNotEmpty) {
       return (Center(
@@ -452,37 +483,335 @@ class _WeatherScreenState extends State<WeatherScreen>
         ),
       ));
     } else {
-      return Center(
-        child: SingleChildScrollView(
+      List<String> splited = _currentlyData?.split('\n') ?? [];
+      String tempText = "";
+      String? windSpeedText = "";
+      int weatherCode = 0;
+      if (splited.length > 2) {
+        tempText = splited[0];
+        windSpeedText = splited[1];
+        if (splited[2].trim().isNotEmpty) {
+          weatherCode = int.tryParse(splited[2].trim()) ?? 0;
+        }
+      }
+      if (_todayData == null) {
+        return (const Center(
+          child: Text(
+            "Search location",
+            style: TextStyle(fontSize: 24, color: Colors.white),
+            textAlign: TextAlign.center,
+          ),
+        ));
+      } else {
+        return SafeArea(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              if (_todayData != null)
-                Column(children: [
-                  Text(
-                    _selectedLocation,
-                    style: const TextStyle(fontSize: 24),
-                    textAlign: TextAlign.center,
+              // Üstte 2 text
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Column(
+                  children: [
+                    Text(
+                      _selectedCity,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    Text(
+                      "$_selectedRegion, $_selectedCountry",
+                      style: const TextStyle(
+                        fontSize: 15,
+                        color: Colors.white70,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const Text(
+                      "- Today temperatures -",
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.white,
+                        fontStyle: FontStyle.italic,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.4),
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                  Text(
-                    _todayData!,
-                    style: const TextStyle(fontSize: 20),
-                    textAlign: TextAlign.center,
-                  ),
-                ])
-              else
-                const Center(
-                  child: Text(
-                    "Location",
-                    style: TextStyle(fontSize: 24, color: Colors.white),
-                    textAlign: TextAlign.center,
+                  alignment: Alignment.center,
+                  child: LineChart(
+                    LineChartData(
+                      minY: _todayMinTemp,
+                      maxY: _todayMaxTemp,
+                      minX: 0,
+                      maxX: _allTodayTemps.length.toDouble(),
+
+                      // gridData: FlGridData(
+                      //   show: true,
+                      //   drawVerticalLine: true,
+                      //   getDrawingHorizontalLine: (value) => FlLine(
+                      //     color: Colors.grey.withOpacity(0.2),
+                      //     strokeWidth: 1,
+                      //   ),
+                      //   getDrawingVerticalLine: (value) => FlLine(
+                      //     color: Colors.grey.withOpacity(0.2),
+                      //     strokeWidth: 1,
+                      //   ),
+                      // ),
+
+                      titlesData: FlTitlesData(
+                        show: true,
+                        leftTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 40,
+                            interval: 3,
+                            getTitlesWidget: (value, meta) {
+                              return Text('${value.toDouble()}°',
+                                  style: const TextStyle(color: Colors.white));
+                            },
+                          ),
+                        ),
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 40,
+                            interval: 4, // Her 4 saatte bir göster
+                            getTitlesWidget: (value, meta) {
+                              String text = "";
+                              switch (value.toInt()) {
+                                case 0:
+                                  text = "00:00";
+                                  break;
+                                case 4:
+                                  text = "04:00";
+                                  break;
+                                case 8:
+                                  text = "08:00";
+                                  break;
+                                case 12:
+                                  text = "12:00";
+                                  break;
+                                case 16:
+                                  text = "16:00";
+                                  break;
+                                case 20:
+                                  text = "20:00";
+                                  break;
+                                case 23:
+                                  text = "23:59";
+                                  break;
+                              }
+                              return Text(
+                                text,
+                                style: const TextStyle(color: Colors.white),
+                              );
+                            },
+                          ),
+                        ),
+                        topTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false)),
+                        rightTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false)),
+                      ),
+                      borderData: FlBorderData(
+                        show: true,
+                        border: const Border(
+                          bottom: BorderSide(color: Colors.white, width: 2),
+                          left: BorderSide(color: Colors.white, width: 2),
+                          right: BorderSide(color: Colors.transparent),
+                          top: BorderSide(color: Colors.transparent),
+                        ),
+                      ),
+
+                      lineBarsData: [
+                        LineChartBarData(
+                          isCurved: true,
+                          color: Colors.blueAccent,
+                          barWidth: 3,
+                          dotData: FlDotData(show: true),
+                          belowBarData: BarAreaData(
+                            show: true,
+                            color: Colors.blueAccent.withOpacity(0.3),
+                          ),
+                          spots: _allTodayTemps.asMap().entries.map((entry) {
+                            int x = entry.key;
+                            double y = entry.value;
+                            return FlSpot(x.toDouble(), y);
+                          }).toList(),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
+              ),
+
+              buildBottomScrollingText(_todayData!),
             ],
           ),
-        ),
-      );
+        );
+      }
     }
+  }
+
+//   Widget todayTabObject() {
+//     if (getErrorMessages().isNotEmpty) {
+//       return (Center(
+//         child: Column(
+//           children: [
+//             Text(
+//               getErrorMessages(),
+//               style: const TextStyle(fontSize: 24, color: Colors.red),
+//               textAlign: TextAlign.center,
+//             )
+//           ],
+//         ),
+//       ));
+//     } else {
+//       List<String> splited = _currentlyData?.split('\n') ?? [];
+//       String tempText = "";
+//       String? windSpeedText = "";
+//       int weatherCode = 0;
+//       if (splited.length > 2) {
+//         tempText = splited[0];
+//         windSpeedText = splited[1];
+//         if (splited[2].trim().isNotEmpty) {
+//           weatherCode = int.tryParse(splited[2].trim()) ?? 0;
+//         }
+//       }
+//       if (_todayData == null) {
+//         return (const Center(
+//           child: Text(
+//             "Search location",
+//             style: TextStyle(fontSize: 24, color: Colors.white),
+//             textAlign: TextAlign.center,
+//           ),
+//         ));
+//       } else {
+//         return SafeArea(
+//           child: Column(
+//             children: [
+//               // Üstte 2 text
+//               Padding(
+//                 padding: const EdgeInsets.symmetric(vertical: 8),
+//                 child: Column(
+//                   children: [
+//                     Text(
+//                       _selectedCity,
+//                       style: const TextStyle(
+//                         fontSize: 18,
+//                         fontWeight: FontWeight.bold,
+//                         color: Colors.white,
+//                       ),
+//                       textAlign: TextAlign.center,
+//                     ),
+//                     Text(
+//                       "$_selectedRegion, $_selectedCountry",
+//                       style: const TextStyle(
+//                         fontSize: 15,
+//                         color: Colors.white70,
+//                       ),
+//                       textAlign: TextAlign.center,
+//                     ),
+//                     const Text(
+//                       "- Today temperatures -",
+//                       style: TextStyle(
+//                         fontSize: 15,
+//                         color: Colors.white,
+//                         fontStyle: FontStyle.italic,
+//                       ),
+//                       textAlign: TextAlign.center,
+//                     ),
+//                   ],
+//                 ),
+//               ),
+//               Expanded(
+//                 child: Container(
+//                   width: double.infinity,
+//                   margin: const EdgeInsets.symmetric(horizontal: 16),
+//                   decoration: BoxDecoration(
+//                     color: Colors.black.withOpacity(0.4),
+//                     borderRadius: BorderRadius.circular(16),
+//                   ),
+//                   alignment: Alignment.center,
+//                   child: LineChart(
+//                     LineChartData(
+//                       minY: -100,
+//                       maxY: 100,
+//                       lineBarsData: [
+//                         LineChartBarData(
+//                           spots: [
+//                             FlSpot(0, 1),
+//                             FlSpot(1, -10),
+//                             FlSpot(2, 70),
+//                             FlSpot(3, 45)
+//                           ],
+//                           color: Colors.white,
+//                           barWidth: 3,
+//                           isCurved: false,
+//                         ),
+//                       ],
+//                       titlesData: const FlTitlesData(
+//                           topTitles: AxisTitles(
+//                             sideTitles: SideTitles(showTitles: false),
+//                           ),
+//                           bottomTitles: AxisTitles(
+//                             sideTitles: SideTitles(showTitles: true),
+//                           )),
+//                     ),
+//                   ),
+//                 ),
+//               ),
+//
+//               buildBottomScrollingText(_todayData!),
+//             ],
+//           ),
+//         );
+//       }
+//     }
+//   }
+
+  double getMinMaxTempOfToday() {
+    return (0.0);
+  }
+
+  Widget buildBottomScrollingText(String longBottomText) {
+    ScrollController _scrollController = ScrollController();
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10, top: 20, left: 10),
+      // BottomAppBar yüksekliği
+      child: SizedBox(
+        height: 40,
+        child: Scrollbar(
+          controller: _scrollController,
+          thumbVisibility: true, // Kaydırma çubuğunu sürekli gösterir
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            scrollDirection: Axis.horizontal,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  longBottomText,
+                  style: const TextStyle(fontSize: 18, color: Colors.white),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget weeklyTabObject() {
@@ -564,8 +893,9 @@ class _WeatherScreenState extends State<WeatherScreen>
             Container(
               decoration: BoxDecoration(
                 color: Colors.blue[800],
-                borderRadius:
-                const BorderRadius.only(topRight: Radius.circular(10)),
+                borderRadius: const BorderRadius.only(
+                    topRight: Radius.circular(10),
+                    bottomRight: Radius.circular(10)),
               ),
               child: IconButton(
                 icon: const Icon(
@@ -608,77 +938,77 @@ class _WeatherScreenState extends State<WeatherScreen>
             children: [
               _searchResults.isNotEmpty
                   ? Expanded(
-                child: ListView.builder(
-                  itemCount: _searchResults.length >= 5
-                      ? 5
-                      : _searchResults.length,
-                  itemBuilder: (context, index) {
-                    final result = _searchResults[index];
-                    return ListTile(
-                      title: result['display_name'].contains(',')
-                          ? Wrap(
+                      child: ListView.builder(
+                        itemCount: _searchResults.length >= 5
+                            ? 5
+                            : _searchResults.length,
+                        itemBuilder: (context, index) {
+                          final result = _searchResults[index];
+                          return ListTile(
+                            title: result['display_name'].contains(',')
+                                ? Wrap(
+                                    children: [
+                                      const Icon(
+                                        Icons.location_city,
+                                        color: Colors.blue,
+                                      ),
+                                      Text(
+                                        result['display_name'].substring(
+                                            0,
+                                            result['display_name']
+                                                .indexOf(',')),
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 20,
+                                            color: Colors.white),
+                                      ),
+                                      Text(
+                                        result['display_name'].substring(
+                                            result['display_name']
+                                                .indexOf(',')),
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 15,
+                                            color: Colors.white),
+                                      ),
+                                      const Divider(
+                                        thickness: 2,
+                                      ),
+                                    ],
+                                  )
+                                : Wrap(
+                                    children: [
+                                      Text(
+                                        result['display_name'],
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white),
+                                      ),
+                                      const Divider(
+                                        thickness: 2,
+                                      ),
+                                    ],
+                                  ),
+                            onTap: () {
+                              _setDatas(result);
+                              _searchController.text = "";
+                              _searchResults.clear();
+                              _selectedLocation = result['display_name'];
+                            },
+                          );
+                        },
+                      ),
+                    )
+                  : Expanded(
+                      child: TabBarView(
+                        controller: _tabController,
                         children: [
-                          const Icon(
-                            Icons.location_city,
-                            color: Colors.blue,
-                          ),
-                          Text(
-                            result['display_name'].substring(
-                                0,
-                                result['display_name']
-                                    .indexOf(',')),
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 20,
-                                color: Colors.white),
-                          ),
-                          Text(
-                            result['display_name'].substring(
-                                result['display_name']
-                                    .indexOf(',')),
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
-                                color: Colors.white),
-                          ),
-                          const Divider(
-                            thickness: 2,
-                          ),
-                        ],
-                      )
-                          : Wrap(
-                        children: [
-                          Text(
-                            result['display_name'],
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white),
-                          ),
-                          const Divider(
-                            thickness: 2,
-                          ),
+                          currentlyTabObject(),
+                          todayTabObject(),
+                          weeklyTabObject(),
                         ],
                       ),
-                      onTap: () {
-                        _setDatas(result);
-                        _searchController.text = "";
-                        _searchResults.clear();
-                        _selectedLocation = result['display_name'];
-                      },
-                    );
-                  },
-                ),
-              )
-                  : Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    currentlyTabObject(),
-                    todayTabObject(),
-                    weeklyTabObject(),
-                  ],
-                ),
-              ),
+                    ),
             ],
           ),
         ],

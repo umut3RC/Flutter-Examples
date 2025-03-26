@@ -41,6 +41,7 @@ class _WeatherScreenState extends State<WeatherScreen>
   double _todayMinTemp = 0.0;
   double _todayMaxTemp = 0.0;
   List<double> _allTodayTemps = [];
+  List<Widget> _todayHourlyData = [];
 
   TabController? _tabController;
 
@@ -126,7 +127,7 @@ class _WeatherScreenState extends State<WeatherScreen>
   Future<void> _getTodayData(double lat, double lon) async {
     final url =
         'https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon'
-        '&hourly=temperature_2m,windspeed_10m&timezone=auto';
+        '&forecast_days=1&hourly=temperature_2m,windspeed_10m&timezone=auto';
 
     final response = await http.get(Uri.parse(url));
 
@@ -144,6 +145,7 @@ class _WeatherScreenState extends State<WeatherScreen>
       double tmp = 0.0;
 
       _allTodayTemps.clear();
+      _todayHourlyData.clear();
       for (int i = 0; i < hourlyTimes.length; i++) {
         weatherInfo += "${hourlyTimes[i].split("T")[1]}"
             "        ${temperatures[i]}°C"
@@ -158,13 +160,12 @@ class _WeatherScreenState extends State<WeatherScreen>
           minTempVal = tmp;
         }
 
+        _todayHourlyData
+            .add(getTodayHourlyBottomData(i, temperatures[i], windSpeeds[i]));
       }
 
-
-
-      print("Max:$maxTempVal *** Min$minTempVal *** Count:${_allTodayTemps.length}" );
-
-
+      print(
+          "Max:$maxTempVal *** Min$minTempVal *** Count:${_allTodayTemps.length}");
 
       setState(() {
         _todayData = weatherInfo;
@@ -554,7 +555,7 @@ class _WeatherScreenState extends State<WeatherScreen>
                       minY: _todayMinTemp,
                       maxY: _todayMaxTemp,
                       minX: 0,
-                      maxX: _allTodayTemps.length.toDouble(),
+                      maxX: _allTodayTemps.length.toDouble() - 1.0,
 
                       // gridData: FlGridData(
                       //   show: true,
@@ -586,35 +587,19 @@ class _WeatherScreenState extends State<WeatherScreen>
                           sideTitles: SideTitles(
                             showTitles: true,
                             reservedSize: 40,
-                            interval: 4, // Her 4 saatte bir göster
+                            interval: 2,
                             getTitlesWidget: (value, meta) {
                               String text = "";
-                              switch (value.toInt()) {
-                                case 0:
-                                  text = "00:00";
-                                  break;
-                                case 4:
-                                  text = "04:00";
-                                  break;
-                                case 8:
-                                  text = "08:00";
-                                  break;
-                                case 12:
-                                  text = "12:00";
-                                  break;
-                                case 16:
-                                  text = "16:00";
-                                  break;
-                                case 20:
-                                  text = "20:00";
-                                  break;
-                                case 23:
-                                  text = "23:59";
-                                  break;
+
+                              if (value.toInt() < 10) {
+                                text = "0${value.toInt()}.00";
+                              } else {
+                                text = "${value.toInt()}.00";
                               }
                               return Text(
                                 text,
-                                style: const TextStyle(color: Colors.white),
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 10),
                               );
                             },
                           ),
@@ -664,147 +649,37 @@ class _WeatherScreenState extends State<WeatherScreen>
     }
   }
 
-//   Widget todayTabObject() {
-//     if (getErrorMessages().isNotEmpty) {
-//       return (Center(
-//         child: Column(
-//           children: [
-//             Text(
-//               getErrorMessages(),
-//               style: const TextStyle(fontSize: 24, color: Colors.red),
-//               textAlign: TextAlign.center,
-//             )
-//           ],
-//         ),
-//       ));
-//     } else {
-//       List<String> splited = _currentlyData?.split('\n') ?? [];
-//       String tempText = "";
-//       String? windSpeedText = "";
-//       int weatherCode = 0;
-//       if (splited.length > 2) {
-//         tempText = splited[0];
-//         windSpeedText = splited[1];
-//         if (splited[2].trim().isNotEmpty) {
-//           weatherCode = int.tryParse(splited[2].trim()) ?? 0;
-//         }
-//       }
-//       if (_todayData == null) {
-//         return (const Center(
-//           child: Text(
-//             "Search location",
-//             style: TextStyle(fontSize: 24, color: Colors.white),
-//             textAlign: TextAlign.center,
-//           ),
-//         ));
-//       } else {
-//         return SafeArea(
-//           child: Column(
-//             children: [
-//               // Üstte 2 text
-//               Padding(
-//                 padding: const EdgeInsets.symmetric(vertical: 8),
-//                 child: Column(
-//                   children: [
-//                     Text(
-//                       _selectedCity,
-//                       style: const TextStyle(
-//                         fontSize: 18,
-//                         fontWeight: FontWeight.bold,
-//                         color: Colors.white,
-//                       ),
-//                       textAlign: TextAlign.center,
-//                     ),
-//                     Text(
-//                       "$_selectedRegion, $_selectedCountry",
-//                       style: const TextStyle(
-//                         fontSize: 15,
-//                         color: Colors.white70,
-//                       ),
-//                       textAlign: TextAlign.center,
-//                     ),
-//                     const Text(
-//                       "- Today temperatures -",
-//                       style: TextStyle(
-//                         fontSize: 15,
-//                         color: Colors.white,
-//                         fontStyle: FontStyle.italic,
-//                       ),
-//                       textAlign: TextAlign.center,
-//                     ),
-//                   ],
-//                 ),
-//               ),
-//               Expanded(
-//                 child: Container(
-//                   width: double.infinity,
-//                   margin: const EdgeInsets.symmetric(horizontal: 16),
-//                   decoration: BoxDecoration(
-//                     color: Colors.black.withOpacity(0.4),
-//                     borderRadius: BorderRadius.circular(16),
-//                   ),
-//                   alignment: Alignment.center,
-//                   child: LineChart(
-//                     LineChartData(
-//                       minY: -100,
-//                       maxY: 100,
-//                       lineBarsData: [
-//                         LineChartBarData(
-//                           spots: [
-//                             FlSpot(0, 1),
-//                             FlSpot(1, -10),
-//                             FlSpot(2, 70),
-//                             FlSpot(3, 45)
-//                           ],
-//                           color: Colors.white,
-//                           barWidth: 3,
-//                           isCurved: false,
-//                         ),
-//                       ],
-//                       titlesData: const FlTitlesData(
-//                           topTitles: AxisTitles(
-//                             sideTitles: SideTitles(showTitles: false),
-//                           ),
-//                           bottomTitles: AxisTitles(
-//                             sideTitles: SideTitles(showTitles: true),
-//                           )),
-//                     ),
-//                   ),
-//                 ),
-//               ),
-//
-//               buildBottomScrollingText(_todayData!),
-//             ],
-//           ),
-//         );
-//       }
-//     }
-//   }
-
-  double getMinMaxTempOfToday() {
-    return (0.0);
-  }
-
   Widget buildBottomScrollingText(String longBottomText) {
     ScrollController _scrollController = ScrollController();
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10, top: 20, left: 10),
+      padding: const EdgeInsets.only(bottom: 10, top: 0, left: 10),
       // BottomAppBar yüksekliği
       child: SizedBox(
-        height: 40,
+        height: 75,
         child: Scrollbar(
           controller: _scrollController,
           thumbVisibility: true, // Kaydırma çubuğunu sürekli gösterir
           child: SingleChildScrollView(
             controller: _scrollController,
             scrollDirection: Axis.horizontal,
+            // child: Center(
+            //   child: Padding(
+            //     padding: const EdgeInsets.symmetric(horizontal: 16),
+            //     child: Text(
+            //       longBottomText,
+            //       style: const TextStyle(fontSize: 18, color: Colors.white),
+            //     ),
+            //   ),
+            //
+
             child: Center(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  longBottomText,
-                  style: const TextStyle(fontSize: 18, color: Colors.white),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    ..._todayHourlyData,
+                  ],
                 ),
               ),
             ),
@@ -812,6 +687,60 @@ class _WeatherScreenState extends State<WeatherScreen>
         ),
       ),
     );
+  }
+
+  Widget getTodayHourlyBottomData(
+      int hourIndex, double temp, double windSpeed) {
+    String realHour = "";
+
+    if (hourIndex < 10) {
+      realHour = "0$hourIndex.00";
+    } else {
+      realHour = "$hourIndex.00";
+    }
+
+    return (Container(
+        margin: const EdgeInsets.symmetric(horizontal: 15),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.75),
+          borderRadius: BorderRadius.circular(15),
+        ),
+        alignment: Alignment.center,
+        child: Column(
+          children: [
+            Text(
+              realHour,
+              style: const TextStyle(fontSize: 15, color: Colors.white),
+            ),
+            Row(
+              children: [
+                const Icon(
+                  Icons.sunny,
+                  color: Colors.white,
+                  size: 15,
+                ),
+                Text(
+                  "$temp°C",
+                  style: const TextStyle(fontSize: 15, color: Colors.white),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                const Icon(
+                  Icons.air,
+                  color: Colors.white,
+                  size: 15,
+                ),
+                Text(
+                  "${windSpeed}km/h",
+                  style:
+                      const TextStyle(fontSize: 15, color: Colors.yellowAccent),
+                ),
+              ],
+            )
+          ],
+        )));
   }
 
   Widget weeklyTabObject() {

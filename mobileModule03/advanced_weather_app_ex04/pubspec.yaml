@@ -1,0 +1,33 @@
+name: advanced_weather_app_ex04
+description: "A new Flutter project."
+
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.3
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  http: ^0.13.4
+  geocoding: ^2.0.1
+  connectivity_plus: ^5.0.2
+  fl_chart: ^0.70.2
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^4.0.0
+
+flutter:
+  assets:
+    - assets/images/bg-4.png
+
+  uses-material-design: true

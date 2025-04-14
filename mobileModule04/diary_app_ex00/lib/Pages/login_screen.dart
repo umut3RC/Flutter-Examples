@@ -18,6 +18,10 @@ class LoginScreen extends StatelessWidget {
                 MaterialPageRoute(builder: (context) => HomeScreen()),
               );
             }
+            else
+              {
+                print("Nullunduruk gari");
+              }
           },
           child: Text("Google ile Giriş Yap"),
         ),

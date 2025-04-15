@@ -24,9 +24,25 @@ class HomeScreen extends StatelessWidget {
         ],
       ),
       body: Center(
-        child: Text(
-          "Hoş Geldin!",
-          style: TextStyle(fontSize: 24),
+        child: Column(
+          children: [
+            Text("Welcome Home", style: TextStyle(fontSize: 24)),
+            TextButton(
+              onPressed: () {
+                print("Yeni entry oluşturu verin gari");
+              },
+              child: Text("New Entry"),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  //Tüm günlük girdileri al sırala
+                  children: [],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

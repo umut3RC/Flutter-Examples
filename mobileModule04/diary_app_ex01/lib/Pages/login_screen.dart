@@ -1,9 +1,23 @@
 import 'package:flutter/material.dart';
 import '../Services/auth_service.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'home_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   final AuthService _authService = AuthService();
+
+  HomeScreen NagivateToHomePage(final _user)
+  {
+    CollectionReference collRef = FirebaseFirestore.instance.collection('user');
+    collRef.add(
+      {
+        'DisplayName': _user.displayName,
+        'email': _user.email,
+      }
+    );
+    return HomeScreen();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +29,7 @@ class LoginScreen extends StatelessWidget {
             if (user != null) {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => HomeScreen()),
+                MaterialPageRoute(builder: (context) => NagivateToHomePage(user)),
               );
             }
             else

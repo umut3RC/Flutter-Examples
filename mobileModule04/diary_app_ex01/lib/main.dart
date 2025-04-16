@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+
 // import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -39,9 +40,7 @@ class AuthChecker extends StatelessWidget {
       stream: FirebaseAuth.instance.authStateChanges(), // Oturum takibi
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
+          return Scaffold(body: Center(child: CircularProgressIndicator()));
         } else if (snapshot.hasData) {
           return HomeScreen(); // Kullanıcı oturum açık
         } else {

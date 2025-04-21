@@ -4,6 +4,7 @@ import '../Services/auth_service.dart';
 import 'login_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+
 class HomeScreen extends StatefulWidget {
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -25,17 +26,25 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final String userEmail = currentUser.email!;
 
-    QuerySnapshot snapshot =
-        await FirebaseFirestore.instance
-            .collection('notes')
-            .where('usermail', isEqualTo: userEmail)
-            .orderBy('date', descending: true) // İsteğe bağlı sıralama
-            .get();
+    QuerySnapshot snapshot = await FirebaseFirestore.instance
+        .collection('notes')
+        .where('usermail', isEqualTo: userEmail)
+        .orderBy('date', descending: true)
+        .get();
 
-    // Verileri map'e dönüştür
+    // Veriyi hem data hem de doc ID ile al
     return snapshot.docs
-        .map((doc) => doc.data() as Map<String, dynamic>)
+        .map((doc) => {
+      'id': doc.id, // belge ID
+      ...doc.data() as Map<String, dynamic>,
+    })
         .toList();
+  }
+
+  Future<void> deleteNoteById(String docId) async {
+    await FirebaseFirestore.instance.collection('notes').doc(docId).delete();
+    RefreshEntries();
+    print("Silindi: $docId");
   }
 
   Future<void> getAllEntries() async {
@@ -48,13 +57,60 @@ class _HomeScreenState extends State<HomeScreen> {
   void RefreshEntries() {
     getAllEntries();
   }
-  Widget CreateEntryObj(String title, String etime, int icn) {
+
+  Widget CreateEntryObj(String title, DateTime etime, int icn, int _index, String docid) {
+
     return (ElevatedButton(
       style: ButtonStyle(
         backgroundColor: MaterialStateProperty.all(Colors.cyan[100]),
       ),
       onPressed: () {
-        print("büttürgeç");
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          builder: (context) {
+            return StatefulBuilder(
+              builder: (BuildContext context, StateSetter setModalState) {
+                return Padding(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom,
+                    left: 16,
+                    right: 16,
+                    top: 16,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(title),
+                      Text(etime.toString()),
+                      GetSentimentIcon(icn),
+                      // Güncellenen text buraya
+                      Text(_userNotes[_index]['text'].toString()),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              deleteNoteById(docid);
+                              Navigator.pop(context);
+                            },
+                            child: Text('Delete', style: TextStyle(color: Colors.redAccent),),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            child: Text('Close'),
+                          ),
+                        ],
+                      )
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        );
       },
       child: Column(
         children: [
@@ -67,6 +123,12 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     ));
   }
+
+  // String formatTimestamp(Timestamp timestamp) {
+  //   DateTime date = timestamp.toDate(); // Timestamp → DateTime
+  //   String formattedDate = DateFormat('EEEE, MMMM, d, yyyy').format(date);
+  //   return formattedDate;
+  // }
 
   Future<void> PushNewEntryData(String title, int icn, String text) async {
     CollectionReference usersRef = FirebaseFirestore.instance.collection(
@@ -108,6 +170,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    RefreshEntries();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -146,8 +214,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   builder: (context) {
                     final titleController = TextEditingController();
                     final contentController = TextEditingController();
-                    // int tempSentimentIndex = _lastSentimentIndex;
-                    // String tempSentimentText = _lastSentimentText;
 
                     return StatefulBuilder(
                       builder: (
@@ -240,14 +306,18 @@ class _HomeScreenState extends State<HomeScreen> {
                         itemCount: _userNotes.length,
                         itemBuilder: (BuildContext context, int index) {
                           return ListTile(
-                            title: CreateEntryObj(_userNotes[index]['title'].toString(),_userNotes[index]['date'].toString(),int.parse(_userNotes[index]['icon'].toString())),
+                            title: CreateEntryObj(
+                              _userNotes[index]['title'].toString(),
+                              (_userNotes[index]['date'] as Timestamp).toDate(),
+                              int.parse(_userNotes[index]['icon'].toString()),
+                              index,
+                                _userNotes[index]['id'].toString()
+                            ),
                           );
                         },
                       )
-                      : Center(child: Text('Hiç not yok')),
+                      : Center(child: Text('Lest Create Your First Note!')),
             ),
-
-            // ),
           ],
         ),
       ),

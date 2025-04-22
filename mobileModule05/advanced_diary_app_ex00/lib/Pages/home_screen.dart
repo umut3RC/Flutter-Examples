@@ -91,7 +91,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(title),
                       Text(etime.toString()),
                       GetSentimentIcon(icn),
-                      // Güncellenen text buraya
                       Text(_userNotes[_index]['text'].toString()),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -134,12 +133,6 @@ class _HomeScreenState extends State<HomeScreen> {
     ));
   }
 
-  // String formatTimestamp(Timestamp timestamp) {
-  //   DateTime date = timestamp.toDate(); // Timestamp → DateTime
-  //   String formattedDate = DateFormat('EEEE, MMMM, d, yyyy').format(date);
-  //   return formattedDate;
-  // }
-
   Future<void> PushNewEntryData(String title, int icn, String text) async {
     CollectionReference usersRef = FirebaseFirestore.instance.collection(
       'notes',
@@ -181,75 +174,63 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget CreateEntryList() {
     if (_userNotes.isNotEmpty) {
-      if (_userNotes.length > 2) {
-        return (Column(
-          children: [
-            Container(
-              color: Colors.lightBlueAccent,
-              child: Column(
-                children: [
-                  Text('Your Last Diary Entries', style: TextStyle(color: Colors.deepPurple, fontSize: 25),),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: 2,
-                    itemBuilder: (BuildContext context, int index) {
-                      return ListTile(
-                        title: CreateEntryObj(
-                          _userNotes[index]['title'].toString(),
-                          (_userNotes[index]['date'] as Timestamp).toDate(),
-                          int.parse(_userNotes[index]['icon'].toString()),
-                          index,
-                          _userNotes[index]['id'].toString(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
+      return (Column(
+        children: [
+          Container(
+            color: Colors.lightBlueAccent,
+            child: Column(
+              children: [
+                Text(
+                  'Your Last Diary Entries',
+                  style: TextStyle(color: Colors.deepPurple, fontSize: 25),
+                ),
+                ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: _userNotes.length > 2 ? 2 : _userNotes.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return ListTile(
+                      title: CreateEntryObj(
+                        _userNotes[index]['title'].toString(),
+                        (_userNotes[index]['date'] as Timestamp).toDate(),
+                        int.parse(_userNotes[index]['icon'].toString()),
+                        index,
+                        _userNotes[index]['id'].toString(),
+                      ),
+                    );
+                  },
+                ),
+              ],
             ),
-            SizedBox(height: 20.0),
-            Container(
-              color: Colors.lightBlueAccent,
-              child: Column(
-                children: [
-                  Text('Your feel for your 7 e'
-                      'ntries', style: TextStyle(color: Colors.deepPurple, fontSize: 25),),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: 2,
-                    itemBuilder: (BuildContext context, int index) {
-                      return ListTile(
-                        title: CreateEntryObj(
-                          _userNotes[index]['title'].toString(),
-                          (_userNotes[index]['date'] as Timestamp).toDate(),
-                          int.parse(_userNotes[index]['icon'].toString()),
-                          index,
-                          _userNotes[index]['id'].toString(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
+          ),
+          SizedBox(height: 20.0),
+          Container(
+            color: Colors.lightBlueAccent,
+            child: Column(
+              children: [
+                Text(
+                  'Your feel for your 7 entries',
+                  style: TextStyle(color: Colors.deepPurple, fontSize: 25),
+                ),
+                ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: _userNotes.length > 7 ? 7 : _userNotes.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return ListTile(
+                      title: CreateEntryObj(
+                        _userNotes[index]['title'].toString(),
+                        (_userNotes[index]['date'] as Timestamp).toDate(),
+                        int.parse(_userNotes[index]['icon'].toString()),
+                        index,
+                        _userNotes[index]['id'].toString(),
+                      ),
+                    );
+                  },
+                ),
+              ],
             ),
-          ],
-        ));
-      } else {
-        return (ListView.builder(
-          itemCount: _userNotes.length,
-          itemBuilder: (BuildContext context, int index) {
-            return ListTile(
-              title: CreateEntryObj(
-                _userNotes[index]['title'].toString(),
-                (_userNotes[index]['date'] as Timestamp).toDate(),
-                int.parse(_userNotes[index]['icon'].toString()),
-                index,
-                _userNotes[index]['id'].toString(),
-              ),
-            );
-          },
-        ));
-      }
+          ),
+        ],
+      ));
     } else {
       return (Center(child: Text('Lest Create Your First Note!')));
     }
@@ -266,9 +247,13 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.cyan,
-        title: Row(
+        title: Column(
           children: [
             Text("Welcome ${FirebaseAuth.instance.currentUser?.displayName}"),
+            Text(
+              'Total entries:${_userNotes.length}',
+              style: TextStyle(fontSize: 10.0),
+            ),
           ],
         ),
         actions: [
@@ -385,7 +370,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Text('Refresh'),
             ),
             SizedBox(height: 20.0),
-            Expanded(child: CreateEntryList()),
+            Expanded(child: CreateEntryList()), //tüm listeler
           ],
         ),
       ),

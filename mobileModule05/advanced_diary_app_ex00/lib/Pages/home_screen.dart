@@ -124,9 +124,12 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         children: [
           Text(etime.toString()),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [GetSentimentIcon(icn), Text(title)],
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [GetSentimentIcon(icn), Text(title)],
+            ),
           ),
         ],
       ),
@@ -270,108 +273,119 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       body: Center(
-        child: Column(
-          children: [
-            Text("How are you feeling today?", style: TextStyle(fontSize: 24)),
-            SizedBox(height: 20.0),
-            TextButton(
-              style: ButtonStyle(
-                backgroundColor: WidgetStateProperty.all(Colors.cyanAccent),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Text(
+                "How are you feeling today?",
+                style: TextStyle(fontSize: 24),
               ),
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (context) {
-                    final titleController = TextEditingController();
-                    final contentController = TextEditingController();
+              SizedBox(height: 20.0),
+              TextButton(
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.all(Colors.cyanAccent),
+                ),
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (context) {
+                      final titleController = TextEditingController();
+                      final contentController = TextEditingController();
 
-                    return StatefulBuilder(
-                      builder: (
-                        BuildContext context,
-                        StateSetter setModalState,
-                      ) {
-                        void setIconSentiment(int status) {
-                          setModalState(() {
-                            _lastSentimentIndex = status;
-                            _lastSentimentText = GetSentimentText(status);
-                            print(_lastSentimentIndex);
-                          });
-                        }
+                      return StatefulBuilder(
+                        builder: (
+                          BuildContext context,
+                          StateSetter setModalState,
+                        ) {
+                          void setIconSentiment(int status) {
+                            setModalState(() {
+                              _lastSentimentIndex = status;
+                              _lastSentimentText = GetSentimentText(status);
+                              print(_lastSentimentIndex);
+                            });
+                          }
 
-                        return Padding(
-                          padding: EdgeInsets.only(
-                            bottom: MediaQuery.of(context).viewInsets.bottom,
-                            left: 16,
-                            right: 16,
-                            top: 16,
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              TextField(
-                                controller: titleController,
-                                decoration: InputDecoration(labelText: "Title"),
-                              ),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  IconButton(
-                                    onPressed: () => setIconSentiment(0),
-                                    icon: Icon(Icons.sentiment_very_satisfied),
+                          return Padding(
+                            padding: EdgeInsets.only(
+                              bottom: MediaQuery.of(context).viewInsets.bottom,
+                              left: 16,
+                              right: 16,
+                              top: 16,
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                TextField(
+                                  controller: titleController,
+                                  decoration: InputDecoration(
+                                    labelText: "Title",
                                   ),
-                                  IconButton(
-                                    onPressed: () => setIconSentiment(1),
-                                    icon: Icon(Icons.sentiment_satisfied),
+                                ),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    IconButton(
+                                      onPressed: () => setIconSentiment(0),
+                                      icon: Icon(
+                                        Icons.sentiment_very_satisfied,
+                                      ),
+                                    ),
+                                    IconButton(
+                                      onPressed: () => setIconSentiment(1),
+                                      icon: Icon(Icons.sentiment_satisfied),
+                                    ),
+                                    IconButton(
+                                      onPressed: () => setIconSentiment(2),
+                                      icon: Icon(Icons.sentiment_dissatisfied),
+                                    ),
+                                  ],
+                                ),
+                                Text(_lastSentimentText),
+                                // Güncellenen text buraya
+                                TextField(
+                                  controller: contentController,
+                                  decoration: InputDecoration(
+                                    labelText: "Text",
                                   ),
-                                  IconButton(
-                                    onPressed: () => setIconSentiment(2),
-                                    icon: Icon(Icons.sentiment_dissatisfied),
-                                  ),
-                                ],
-                              ),
-                              Text(_lastSentimentText),
-                              // Güncellenen text buraya
-                              TextField(
-                                controller: contentController,
-                                decoration: InputDecoration(labelText: "Text"),
-                                maxLines: 10,
-                              ),
-                              ElevatedButton(
-                                onPressed: () {
-                                  if (titleController.text.isNotEmpty &&
-                                      contentController.text.isNotEmpty) {
-                                    PushNewEntryData(
-                                      titleController.text,
-                                      _lastSentimentIndex,
-                                      contentController.text,
-                                    );
-                                    RefreshEntries();
-                                    Navigator.pop(context);
-                                  }
-                                },
-                                child: Text("Add"),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    );
-                  },
-                );
-              },
-              child: Text("Create an entry"),
-            ),
-            TextButton(
-              onPressed: () {
-                getAllEntries();
-              },
-              child: Text('Refresh'),
-            ),
-            SizedBox(height: 20.0),
-            Expanded(child: CreateEntryList()), //tüm listeler
-          ],
+                                  maxLines: 10,
+                                ),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    if (titleController.text.isNotEmpty &&
+                                        contentController.text.isNotEmpty) {
+                                      PushNewEntryData(
+                                        titleController.text,
+                                        _lastSentimentIndex,
+                                        contentController.text,
+                                      );
+                                      RefreshEntries();
+                                      Navigator.pop(context);
+                                    }
+                                  },
+                                  child: Text("Add"),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  );
+                },
+                child: Text("Create an entry"),
+              ),
+              TextButton(
+                onPressed: () {
+                  getAllEntries();
+                },
+                child: Text('Refresh'),
+              ),
+              SizedBox(height: 20.0),
+              CreateEntryList(),
+            ],
+          ),
         ),
       ),
     );

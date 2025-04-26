@@ -1,4 +1,5 @@
-name: advanced_diary_app_ex00
+name: advanced_diary_app_ex01
+
 description: "diary_app"
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev

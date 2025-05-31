@@ -245,6 +245,7 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     RefreshEntries();
   }
 
@@ -252,6 +253,130 @@ class _HomeScreenState extends State<HomeScreen>
   void dispose() {
     _tabController?.dispose();
     super.dispose();
+  }
+
+  Widget HomeMainPage() {
+    return (SingleChildScrollView(
+      child: Column(
+        children: [
+          Text("How are you feeling today?", style: TextStyle(fontSize: 24)),
+          SizedBox(height: 20.0),
+          TextButton(
+            style: ButtonStyle(
+              backgroundColor: WidgetStateProperty.all(Colors.cyanAccent),
+            ),
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (context) {
+                  final titleController = TextEditingController();
+                  final contentController = TextEditingController();
+
+                  return StatefulBuilder(
+                    builder: (BuildContext context, StateSetter setModalState) {
+                      void setIconSentiment(int status) {
+                        setModalState(() {
+                          _lastSentimentIndex = status;
+                          _lastSentimentText = GetSentimentText(status);
+                          print(_lastSentimentIndex);
+                        });
+                      }
+
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          bottom: MediaQuery.of(context).viewInsets.bottom,
+                          left: 16,
+                          right: 16,
+                          top: 16,
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            TextField(
+                              controller: titleController,
+                              decoration: InputDecoration(labelText: "Title"),
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                IconButton(
+                                  onPressed: () => setIconSentiment(0),
+                                  icon: Icon(Icons.sentiment_very_satisfied),
+                                ),
+                                IconButton(
+                                  onPressed: () => setIconSentiment(1),
+                                  icon: Icon(Icons.sentiment_satisfied),
+                                ),
+                                IconButton(
+                                  onPressed: () => setIconSentiment(2),
+                                  icon: Icon(Icons.sentiment_dissatisfied),
+                                ),
+                              ],
+                            ),
+                            Text(_lastSentimentText),
+                            // Güncellenen text buraya
+                            TextField(
+                              controller: contentController,
+                              decoration: InputDecoration(labelText: "Text"),
+                              maxLines: 10,
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                if (titleController.text.isNotEmpty &&
+                                    contentController.text.isNotEmpty) {
+                                  PushNewEntryData(
+                                    titleController.text,
+                                    _lastSentimentIndex,
+                                    contentController.text,
+                                  );
+                                  RefreshEntries();
+                                  Navigator.pop(context);
+                                }
+                              },
+                              child: Text("Add"),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                },
+              );
+            },
+            child: Text("Create an entry"),
+          ),
+          TextButton(
+            onPressed: () {
+              getAllEntries();
+            },
+            child: Text('Refresh'),
+          ),
+          SizedBox(height: 20.0),
+
+          CreateEntryList(),
+          TableCalendar(
+            firstDay: DateTime.utc(2023, 01, 01),
+            focusedDay: DateTime.now(),
+            lastDay: DateTime.utc(2025, 09, 09),
+          ),
+        ],
+      ),
+    ));
+  }
+
+  Widget HomeCalenderPage() {
+    return (SingleChildScrollView(
+      child: Column(
+        children: [
+          TableCalendar(
+            firstDay: DateTime.utc(2023, 01, 01),
+            focusedDay: DateTime.now(),
+            lastDay: DateTime.utc(2025, 09, 09),
+          ),
+        ],
+      ),
+    ));
   }
 
   @override
@@ -282,130 +407,10 @@ class _HomeScreenState extends State<HomeScreen>
         ],
       ),
       body: Center(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // Text(
-              //   "How are you feeling today?",
-              //   style: TextStyle(fontSize: 24),
-              // ),
-              // SizedBox(height: 20.0),
-              // TextButton(
-              //   style: ButtonStyle(
-              //     backgroundColor: WidgetStateProperty.all(Colors.cyanAccent),
-              //   ),
-              //   onPressed: () {
-              //     showModalBottomSheet(
-              //       context: context,
-              //       isScrollControlled: true,
-              //       builder: (context) {
-              //         final titleController = TextEditingController();
-              //         final contentController = TextEditingController();
-              //
-              //         return StatefulBuilder(
-              //           builder: (
-              //             BuildContext context,
-              //             StateSetter setModalState,
-              //           ) {
-              //             void setIconSentiment(int status) {
-              //               setModalState(() {
-              //                 _lastSentimentIndex = status;
-              //                 _lastSentimentText = GetSentimentText(status);
-              //                 print(_lastSentimentIndex);
-              //               });
-              //             }
-              //
-              //             return Padding(
-              //               padding: EdgeInsets.only(
-              //                 bottom: MediaQuery.of(context).viewInsets.bottom,
-              //                 left: 16,
-              //                 right: 16,
-              //                 top: 16,
-              //               ),
-              //               child: Column(
-              //                 mainAxisSize: MainAxisSize.min,
-              //                 children: [
-              //                   TextField(
-              //                     controller: titleController,
-              //                     decoration: InputDecoration(
-              //                       labelText: "Title",
-              //                     ),
-              //                   ),
-              //                   Row(
-              //                     mainAxisAlignment:
-              //                         MainAxisAlignment.spaceBetween,
-              //                     children: [
-              //                       IconButton(
-              //                         onPressed: () => setIconSentiment(0),
-              //                         icon: Icon(
-              //                           Icons.sentiment_very_satisfied,
-              //                         ),
-              //                       ),
-              //                       IconButton(
-              //                         onPressed: () => setIconSentiment(1),
-              //                         icon: Icon(Icons.sentiment_satisfied),
-              //                       ),
-              //                       IconButton(
-              //                         onPressed: () => setIconSentiment(2),
-              //                         icon: Icon(Icons.sentiment_dissatisfied),
-              //                       ),
-              //                     ],
-              //                   ),
-              //                   Text(_lastSentimentText),
-              //                   // Güncellenen text buraya
-              //                   TextField(
-              //                     controller: contentController,
-              //                     decoration: InputDecoration(
-              //                       labelText: "Text",
-              //                     ),
-              //                     maxLines: 10,
-              //                   ),
-              //                   ElevatedButton(
-              //                     onPressed: () {
-              //                       if (titleController.text.isNotEmpty &&
-              //                           contentController.text.isNotEmpty) {
-              //                         PushNewEntryData(
-              //                           titleController.text,
-              //                           _lastSentimentIndex,
-              //                           contentController.text,
-              //                         );
-              //                         RefreshEntries();
-              //                         Navigator.pop(context);
-              //                       }
-              //                     },
-              //                     child: Text("Add"),
-              //                   ),
-              //                 ],
-              //               ),
-              //             );
-              //           },
-              //         );
-              //       },
-              //     );
-              //   },
-              //   child: Text("Create an entry"),
-              // ),
-              // TextButton(
-              //   onPressed: () {
-              //     getAllEntries();
-              //   },
-              //   child: Text('Refresh'),
-              // ),
-              // SizedBox(height: 20.0),
-
-              // CreateEntryList(),
-              // TableCalendar(
-              //   firstDay: DateTime.utc(2023, 01, 01),
-              //   focusedDay: DateTime.now(),
-              //   lastDay: DateTime.utc(2025,09,09),
-              // ),
-              Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [Text('111111'), Text('111111')],
-                ),
-              ),
-            ],
+        child: Expanded(
+          child: TabBarView(
+            controller: _tabController,
+            children: [HomeMainPage(), HomeCalenderPage()],
           ),
         ),
       ),
@@ -416,9 +421,8 @@ class _HomeScreenState extends State<HomeScreen>
         child: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(icon: Icon(Icons.sunny), text: "Currently"),
-            Tab(icon: Icon(Icons.calendar_today), text: "Today"),
-            Tab(icon: Icon(Icons.calendar_month), text: "Weekly"),
+            Tab(icon: Icon(Icons.person), text: "Home"),
+            Tab(icon: Icon(Icons.calendar_today), text: "Calender"),
           ],
           labelStyle: const TextStyle(fontSize: 12),
         ),

@@ -17,6 +17,7 @@ class _HomeScreenState extends State<HomeScreen>
   String _lastSentimentText = 'Happy';
   List<Map<String, dynamic>> _userNotes = [];
   TabController? _tabController;
+  DateTime _selectedDay = DateTime.now();
 
   Future<List<Map<String, dynamic>>> fetchUserNotes() async {
     final currentUser = FirebaseAuth.instance.currentUser;
@@ -265,6 +266,7 @@ class _HomeScreenState extends State<HomeScreen>
             style: ButtonStyle(
               backgroundColor: WidgetStateProperty.all(Colors.cyanAccent),
             ),
+            child: Text("Create an entry"),
             onPressed: () {
               showModalBottomSheet(
                 context: context,
@@ -344,7 +346,6 @@ class _HomeScreenState extends State<HomeScreen>
                 },
               );
             },
-            child: Text("Create an entry"),
           ),
           TextButton(
             onPressed: () {
@@ -353,30 +354,87 @@ class _HomeScreenState extends State<HomeScreen>
             child: Text('Refresh'),
           ),
           SizedBox(height: 20.0),
-
           CreateEntryList(),
-          TableCalendar(
-            firstDay: DateTime.utc(2023, 01, 01),
-            focusedDay: DateTime.now(),
-            lastDay: DateTime.utc(2025, 09, 09),
-          ),
         ],
       ),
     ));
   }
 
+  // Widget HomeCalenderPage() {
+  //   return (SingleChildScrollView(
+  //     child: Column(
+  //       children: [
+  //         TableCalendar(
+  //           firstDay: DateTime.utc(2023, 01, 01),
+  //           focusedDay: DateTime.now(),
+  //           lastDay: DateTime.utc(2025, 09, 09),
+  //         ),
+  //         Text('TEST'),
+  //       ],
+  //     ),
+  //   ));
+  // }
+
+  Widget _buildEntryButtons() {
+    final today = DateTime.now();
+
+    // Sadece seçilen tarihten bugüne kadar olanları al
+    final filteredNotes =
+        _userNotes.where((note) {
+          final noteDate = (note['date'] as Timestamp).toDate();
+          return (noteDate.isAfter(_selectedDay.subtract(Duration(days: 1))) &&
+              noteDate.isBefore(today.add(Duration(days: 1))));
+        }).toList();
+
+    if (filteredNotes.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Text("No entries between selected day and today."),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      itemCount: filteredNotes.length,
+      itemBuilder: (context, index) {
+        final note = filteredNotes[index];
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+          child: CreateEntryObj(
+            note['title'],
+            (note['date'] as Timestamp).toDate(),
+            int.parse(note['icon'].toString()),
+            _userNotes.indexOf(note),
+            note['id'],
+          ),
+        );
+      },
+    );
+  }
+
   Widget HomeCalenderPage() {
-    return (SingleChildScrollView(
+    return SingleChildScrollView(
       child: Column(
         children: [
           TableCalendar(
             firstDay: DateTime.utc(2023, 01, 01),
-            focusedDay: DateTime.now(),
+            focusedDay: _selectedDay,
+            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+            onDaySelected: (selectedDay, focusedDay) {
+              setState(() {
+                _selectedDay = selectedDay;
+              });
+            },
             lastDay: DateTime.utc(2025, 09, 09),
           ),
+          const SizedBox(height: 10),
+          _buildEntryButtons(),
         ],
       ),
-    ));
+    );
   }
 
   @override

@@ -464,13 +464,15 @@ class _HomeScreenState extends State<HomeScreen>
           ),
         ],
       ),
-      body: Center(
-        child: Expanded(
-          child: TabBarView(
-            controller: _tabController,
-            children: [HomeMainPage(), HomeCalenderPage()],
+      body: Column(
+        children: [
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [HomeMainPage(), HomeCalenderPage()],
+            ),
           ),
-        ),
+        ],
       ),
       bottomNavigationBar: BottomAppBar(
         // color: Colors.transparent,
